@@ -303,6 +303,15 @@ func RestfulAPIPostMany(collName string, filter bson.M, postDataArray []interfac
 	return nil
 }
 
+func RestfulAPICount(collName string, filter bson.M) (int64, error) {
+	collection := Client.Database(dbName).Collection(collName)
+	result, err := collection.CountDocuments(context.TODO(), filter)
+	if err != nil {
+		return 0, fmt.Errorf("RestfulAPICount err: %+v", err)
+	}
+	return result, nil
+}
+
 func Drop(collName string) error {
 	collection := Client.Database(dbName).Collection(collName)
 	return collection.Drop(context.TODO())
