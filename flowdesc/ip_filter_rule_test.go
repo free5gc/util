@@ -123,8 +123,7 @@ func TestIPFilterRuleDecode(t *testing.T) {
 
 	for testName, expected := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			r := NewIPFilterRule()
-			err := Decode(expected.filterRule, r)
+			r, err := Decode(expected.filterRule)
 
 			require.Equal(t, expected.action, r.GetAction())
 			require.Equal(t, expected.dir, r.GetDirection())
@@ -214,8 +213,7 @@ func TestIPFilterRuleSwapSourceAndDestination(t *testing.T) {
 
 	for testName, expected := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			r := NewIPFilterRule()
-			err := Decode(expected.filterRule, r)
+			r, err := Decode(expected.filterRule)
 			r.SwapSourceAndDestination()
 			require.Equal(t, expected.action, r.GetAction())
 			require.Equal(t, expected.dir, r.GetDirection())

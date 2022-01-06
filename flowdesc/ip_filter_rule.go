@@ -109,6 +109,9 @@ func (r *IPFilterRule) GetProtocol() uint8 {
 
 // SetSourceIP sets source IP of the IPFilterRule
 func (r *IPFilterRule) SetSourceIP(networkStr string) error {
+	if networkStr == "" {
+		return flowDescErrorf("Empty string")
+	}
 	if networkStr == "any" || networkStr == "assigned" {
 		r.srcIP = networkStr
 		return nil
@@ -304,21 +307,33 @@ func Encode(r *IPFilterRule) (string, error) {
 	return strings.Join(ipFilterRuleStr, " "), nil
 }
 
+func removeIntermediateSpace(s []string) []string {
+	parts := make([]string, 0)
+	for _, val := range s {
+		if val != "" {
+			parts = append(parts, val)
+		}
+	}
+	return parts
+}
+
 // Decode parsing the string to IPFilterRule
-func Decode(s string, r *IPFilterRule) error {
+func Decode(s string) (*IPFilterRule, error) {
+	s = strings.TrimSpace(s)
 	parts := strings.Split(s, " ")
+	parts = removeIntermediateSpace(parts)
 
 	var ptr int
-
+	r := NewIPFilterRule()
 	// action
 	if err := r.SetAction(Action(parts[ptr])); err != nil {
-		return err
+		return nil, err
 	}
 	ptr++
 
 	// dir
 	if err := r.SetDirection(Direction(parts[ptr])); err != nil {
-		return err
+		return nil, err
 	}
 	ptr++
 
@@ -328,25 +343,25 @@ func Decode(s string, r *IPFilterRule) error {
 		r.proto = ProtocolNumberAny
 	} else {
 		if proto, err := strconv.Atoi(parts[ptr]); err != nil {
-			return flowDescErrorf("parse proto failed: %s", err)
+			return nil, flowDescErrorf("parse proto failed: %s", err)
 		} else {
 			protoNumber = uint8(proto)
 		}
 		if err := r.SetProtocol(protoNumber); err != nil {
-			return flowDescErrorf("parse proto failed: %s", err)
+			return nil, flowDescErrorf("parse proto failed: %s", err)
 		}
 	}
 	ptr++
 
 	// from
 	if from := parts[ptr]; from != "from" {
-		return flowDescErrorf("parse faild: must have 'from'")
+		return nil, flowDescErrorf("parse faild: must have 'from'")
 	}
 	ptr++
 
 	// src
 	if err := r.SetSourceIP(parts[ptr]); err != nil {
-		return err
+		return nil, err
 	}
 	ptr++
 
@@ -357,26 +372,26 @@ func Decode(s string, r *IPFilterRule) error {
 
 	// to
 	if to := parts[ptr]; to != "to" {
-		return flowDescErrorf("parse faild: must have 'to'")
+		return nil, flowDescErrorf("parse faild: must have 'to'")
 	}
 	ptr++
 
 	// dst
 	if err := r.SetDestinationIP(parts[ptr]); err != nil {
-		return err
+		return nil, err
 	}
 	ptr++
 
 	// if end of parts
 	if !(len(parts) > ptr) {
-		return nil
+		return r, nil
 	}
 
 	if err := r.SetDestinationPorts(parts[ptr]); err != nil {
-		return err
+		return nil, err
 	} // else {
 	//ptr++
 	//}
 
-	return nil
+	return r, nil
 }
