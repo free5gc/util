@@ -18,6 +18,10 @@ type Logger struct {
 	UDR   *LogSetting `yaml:"UDR" valid:"optional"`
 	UPF   *LogSetting `yaml:"UPF" valid:"optional"`
 	NEF   *LogSetting `yaml:"NEF" valid:"optional"`
+	BSF   *LogSetting `yaml:"BSF" valid:"optional"`
+	CHF   *LogSetting `yaml:"CHF" valid:"optional"`
+	UDSF  *LogSetting `yaml:"UDSF" valid:"optional"`
+	NWDAF *LogSetting `yaml:"NWDAF" valid:"optional"`
 	WEBUI *LogSetting `yaml:"WEBUI" valid:"optional"`
 
 	Aper *LogSetting `yaml:"Aper" valid:"optional"`
