@@ -131,6 +131,14 @@ func RestfulAPIPutOne(collName string, filter bson.M, putData map[string]interfa
 	return false, nil
 }
 
+func RestfulAPIPullOne(collName string, filter bson.M, putData map[string]interface{}) error {
+	collection := Client.Database(dbName).Collection(collName)
+	if _, err := collection.UpdateOne(context.TODO(), filter, bson.M{"$pull": putData}); err != nil {
+		return fmt.Errorf("RestfulAPIPullOne err: %+v", err)
+	}
+	return nil
+}
+
 // if no error happened, return true means data existed (not updated) and false means data not existed
 func RestfulAPIPutOneNotUpdate(collName string, filter bson.M, putData map[string]interface{}) (bool, error) {
 	collection := Client.Database(dbName).Collection(collName)
