@@ -98,13 +98,13 @@ func (fsm *FSM) SendEvent(state *State, event EventType, args ArgsType) error {
 	if trans, ok := fsm.transitions[key]; ok {
 		logger.FsmLog.Infof("Handle event[%s], transition from [%s] to [%s]", event, trans.From, trans.To)
 
+		// event callback
+		fsm.callbacks[trans.From](state, event, args)
+
 		// exit callback
 		if trans.From != trans.To {
 			fsm.callbacks[trans.From](state, ExitEvent, args)
 		}
-
-		// event callback
-		fsm.callbacks[trans.From](state, event, args)
 
 		// entry callback
 		if trans.From != trans.To {
