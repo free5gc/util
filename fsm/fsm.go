@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/free5gc/util/fsm/logger"
+	"github.com/omec-project/util/fsm/logger"
 )
 
 type (

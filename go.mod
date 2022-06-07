@@ -1,4 +1,4 @@
-module github.com/free5gc/util
+module github.com/omec-project/util
 
 go 1.14
 
