@@ -77,6 +77,11 @@ func checkDataExisted(collection *mongo.Collection, filter bson.M) (bool, error)
 	return true, nil
 }
 
+func (c *MongoClient) GetCollection(collName string) *mongo.Collection {
+	collection := c.Client.Database(c.dbName).Collection(collName)
+	return collection
+}
+
 func (c *MongoClient) RestfulAPIGetOne(collName string, filter bson.M) (map[string]interface{}, error) {
 	collection := c.Client.Database(c.dbName).Collection(collName)
 	result, err := getOrigData(collection, filter)
