@@ -14,10 +14,9 @@ RUN cd $GOPATH/src && mkdir -p dbtestapp
 COPY . $GOPATH/src/dbtestapp
 RUN cd $GOPATH/src/dbtestapp && go install 
 
-FROM alpine:3.16 AS dbtestapp
-RUN apk add -U vim strace net-tools curl netcat-openbsd bind-tools bash
+FROM golang:1.18.0-stretch AS dbtestapp
+RUN apt-get update && apt-get -y install vim 
 
-WORKDIR /dbtestapp
 RUN mkdir -p /dbtestapp/bin
 COPY --from=test $GOPATH/bin/* /dbtestapp/bin/
 WORKDIR /dbtestapp

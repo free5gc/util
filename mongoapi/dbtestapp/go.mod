@@ -4,10 +4,12 @@ go 1.18
 
 replace github.com/omec-project/util/mongoapi => ../../
 
+replace github.com/omec-project/util/drsm => ../../
+
 require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
-	github.com/omec-project/util v0.0.3-devtemp
+	github.com/omec-project/util v0.0.4-devtemp
 	github.com/thakurajayL/drsm v0.0.72-dev
 	go.mongodb.org/mongo-driver v1.10.1
 )
@@ -20,7 +22,7 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/evanphx/json-patch v4.9.0+incompatible // indirect
+	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect

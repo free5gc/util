@@ -13,6 +13,9 @@ import (
 
 // TODO : should have ability to create new instances of ipam
 func (d *Drsm) initIpam(opt *Options) {
+    if opt != nil {
+	    log.Println("ipmodule ", opt)
+    }
 	dbOptions := &options.ClientOptions{}
 	dbOptions = dbOptions.ApplyURI(d.db.Url)
 	dbConfig := ipam.MongoConfig{DatabaseName: d.db.Name, CollectionName: "ipaddress", MongoClientOptions: dbOptions}

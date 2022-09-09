@@ -57,7 +57,7 @@ type Drsm struct {
 	resourceValidCb func(int32) bool
 	ipModule        ipam.Ipamer
 	prefix          map[string]*ipam.Prefix
-    mongo          *MongoDBLibrary.MongoClient
+	mongo           *MongoDBLibrary.MongoClient
 }
 
 func (d *Drsm) ConstuctDrsm(opt *Options) {
