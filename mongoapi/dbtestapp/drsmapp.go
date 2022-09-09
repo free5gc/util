@@ -6,7 +6,7 @@
 package main
 
 import (
-	"github.com/thakurajayL/drsm"
+	"github.com/omec-project/util/drsm"
 	"log"
 	"os"
 	"time"
