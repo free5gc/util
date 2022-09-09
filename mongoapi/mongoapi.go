@@ -809,16 +809,6 @@ func (c *MongoClient) RestfulAPIPutOneTimeout(collName string, filter bson.M, pu
 	collection := c.Client.Database(c.dbName).Collection(collName)
 	var checkItem map[string]interface{}
 
-	/*index := mongo.IndexModel{
-		Keys:    bsonx.Doc{{Key: timeField, Value: bsonx.Int32(1)}},
-		Options: options.Index().SetExpireAfterSeconds(timeout),
-	}
-
-	_, err := collection.Indexes().CreateOne(context.Background(), index)
-	if err != nil {
-		logger.MongoDBLog.Println("Index creation failed for Field : ", timeField, " in Collection : ", collName)
-	}*/
-
 	collection.FindOne(context.TODO(), filter).Decode(&checkItem)
 
 	if checkItem == nil {
@@ -850,6 +840,6 @@ func (c *MongoClient) RestfulAPIPutOnly(collName string, filter bson.M, putData 
 		//logger.MongoDBLog.Println("matched and replaced an existing document")
 		return nil
 	}
-	err = fmt.Errorf("Failed to updated")
+	err = fmt.Errorf("Failed to update document")
 	return err
 }

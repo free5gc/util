@@ -13,9 +13,9 @@ import (
 
 // TODO : should have ability to create new instances of ipam
 func (d *Drsm) initIpam(opt *Options) {
-    if opt != nil {
-	    log.Println("ipmodule ", opt)
-    }
+	if opt != nil {
+		log.Println("ipmodule ", opt)
+	}
 	dbOptions := &options.ClientOptions{}
 	dbOptions = dbOptions.ApplyURI(d.db.Url)
 	dbConfig := ipam.MongoConfig{DatabaseName: d.db.Name, CollectionName: "ipaddress", MongoClientOptions: dbOptions}
@@ -36,6 +36,25 @@ func (d *Drsm) initIpam(opt *Options) {
 		d.prefix[k] = prefix
 	}
 	log.Println("ip module prefix ", d.prefix)
+}
+
+func (d *Drsm) initIpPool(name string, prefix string) error {
+	p, err := d.ipModule.NewPrefix(context.TODO(), prefix)
+	if err != nil {
+		return err
+	}
+	d.prefix[name] = p
+	return nil
+}
+
+func (d *Drsm) deleteIpPool(name string) error {
+	p, found := d.prefix[name]
+	if found == false {
+		err := fmt.Errorf("Failed to find pool %s", name)
+		return err
+	}
+	_, err := d.ipModule.DeletePrefix(context.TODO(), p.Cidr)
+	return err
 }
 
 func (d *Drsm) acquireIp(name string) (string, error) {

@@ -7,7 +7,7 @@ replace github.com/omec-project/util/mongoapi => ../../
 require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
-	github.com/omec-project/util v0.0.5-devtemp
+	github.com/omec-project/util v0.0.6-devtemp
 	go.mongodb.org/mongo-driver v1.10.1
 )
 

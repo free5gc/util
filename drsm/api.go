@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-
 package drsm
 
 import (
@@ -116,6 +115,16 @@ func (d *Drsm) ReleaseIp(pool, ip string) error {
 		return err
 	}
 	return d.releaseIp(pool, ip)
+}
+
+func (d *Drsm) CreateIpPool(poolName string, ipPool string) error {
+	err := d.initIpPool(poolName, ipPool)
+	return err
+}
+
+func (d *Drsm) DeleteIpPool(poolName string) error {
+	err := d.deleteIpPool(poolName)
+	return err
 }
 
 //add new api for add ip pool, remove ip pool
