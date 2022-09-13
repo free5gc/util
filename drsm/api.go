@@ -126,5 +126,3 @@ func (d *Drsm) DeleteIpPool(poolName string) error {
 	err := d.deleteIpPool(poolName)
 	return err
 }
-
-//add new api for add ip pool, remove ip pool

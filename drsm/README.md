@@ -15,15 +15,15 @@ SPDX-License-Identifier: Apache-2.0
         * Can be used by sctplb, upf-adapter
 
     - Client mode : Learn about other clients and their resource mappings
-        * can be used by AMF pods, SMF pod
+        * can be used by AMF pods, SMF pods
 
 ## Dependency
     
     - MongoDB should run in cluster(replicaset) Mode or sharded Mode
 
 ## Limitation:
-    -  MongoDBlib keeps global client variable. So only 1 DB connection and 1 database allowed.
-    -  We can not have multiple Database connections with above limitation.
+    - If application wants to use multiple Id for same session then its good to use single id is used for multiple purpose.
+      e.g. AMF can use single id for ngapid as well as tmsi
 
 ## Testing
     
@@ -42,8 +42,6 @@ SPDX-License-Identifier: Apache-2.0
     - Allocate more than 1000 ids.. See if New chunk is allocated
 
 ## TODO:
-    -  IP address allocation
     -  MongoDB instance restart
     -  Rst counter to be appended to identify pod. PodId should be = K8s Pod Id + Rst Count.
        This makes sure that restarted pod even if it comes with same name then we treat it differently
-    -  min REST APIs to trigger { allocate, claim }

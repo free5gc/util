@@ -29,7 +29,7 @@ fi
 
 if [ ! -z $INTTEST ]
 then
-curl -X POST $POD_IP:8000/app/v1/integer-resource/ngapids1?num=1
+curl -X POST $POD_IP:8000/app/v1/integer-resource/resourceids?num=1
 else
 echo "Integer resource request not set "
 fi

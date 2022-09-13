@@ -42,21 +42,20 @@ func (c *chunk) scanChunk(d *Drsm) {
 					if res == true {
 						c.FreeIds = append(c.FreeIds, id)
 					} else {
-						c.ScanIds = append(c.ScanIds, id) // Moving to the end
+						c.AllocIds = append(c.AllocIds, id) // Id is in use
 					}
 				} else {
 					// mark as owned. and remove from scan list and add to local table
 					c.State = Owned
 					d.localChunkTbl[c.Id] = c
 					delete(d.scanChunks, c.Id)
-					ticker.Stop()
 					log.Printf("Scan complete for Chunk %v", c.Id)
 					return
 				}
 			}
+			//no one is writing on stopScan for now. We will use it eventually
 		case <-c.stopScan:
 			log.Printf("Received Stop Scan. Closing scan for %v", c.Id)
-			ticker.Stop()
 			return
 		}
 	}

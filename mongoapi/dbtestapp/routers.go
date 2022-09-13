@@ -58,14 +58,14 @@ var routes = Routes{
 	{
 		"AcquireIntegerResource",
 		http.MethodPost,
-		"/integer-resource/:resource-name", // "/integer-resource/ngapids?number=1"
+		"/integer-resource/:resource-name", // e.g. "/integer-resource/resourceids?number=1"
 		IntegerResourceNamePost,
 	},
 
 	{
 		"ReleaseIntegerResource",
 		http.MethodDelete,
-		"/integer-resource/:resource-name/:resource-id", // "/integer-resource/ngapid/10"
+		"/integer-resource/:resource-name/:resource-id", // e.g. "/integer-resource/resourceids/10"
 		IntegerResourceNameDelete,
 	},
 

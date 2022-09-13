@@ -21,7 +21,7 @@ func main() {
 	// connect to mongoDB
 	mongoHndl, _ = mongoapi.SetMongoDB("sdcore", "mongodb://mongodb-arbiter-headless")
 
-	initDrsm("ngapid")
+	initDrsm("resourceids")
 
 	//blocking
 	http_server()
