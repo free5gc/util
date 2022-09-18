@@ -6,11 +6,12 @@ package drsm
 
 import (
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"math/rand"
 	"strconv"
 	"strings"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (c *chunk) GetOwner() *PodId {
@@ -68,6 +69,12 @@ func (c *chunk) AllocateIntID() int32 {
 		log.Println("FreeIds in chunk 0")
 		return 0
 	}
+	var s string
+	for k, _ := range c.FreeIds {
+		s += fmt.Sprint(c.FreeIds[k])
+		s += " "
+	}
+	log.Printf("Free IDs: %s", s)
 	id := c.FreeIds[len(c.FreeIds)-1]
 	c.FreeIds = c.FreeIds[:len(c.FreeIds)-1]
 	return (c.Id << 10) | id
@@ -76,7 +83,12 @@ func (c *chunk) AllocateIntID() int32 {
 func (c *chunk) ReleaseIntID(id int32) {
 	var i int32
 	i = id & 0x3ff
-	log.Println("ReleaseIntID ", id)
+	for _, freeid := range c.FreeIds {
+		if freeid == i {
+			log.Printf("ID %v is already freed", freeid)
+			return
+		}
+	}
 	c.FreeIds = append(c.FreeIds, i)
 	if c.State == Scanning {
 		for k, v := range c.ScanIds {

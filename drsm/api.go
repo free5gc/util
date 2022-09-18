@@ -7,6 +7,7 @@ package drsm
 import (
 	"fmt"
 	"log"
+	"sync"
 )
 
 type DbInfo struct {
@@ -20,6 +21,8 @@ type PodId struct {
 }
 
 type DrsmMode int
+
+var mutex sync.Mutex
 
 const (
 	ResourceClient DrsmMode = iota + 0
@@ -47,6 +50,8 @@ func InitDRSM(sharedPoolName string, myid PodId, db DbInfo, opt *Options) (*Drsm
 }
 
 func (d *Drsm) AllocateInt32ID() (int32, error) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	if d.mode == ResourceDemux {
 		log.Println("Demux mode can not allocate Resource index ")
 		err := fmt.Errorf("Demux mode does not allow Resource Id allocation")
@@ -66,6 +71,8 @@ func (d *Drsm) AllocateInt32ID() (int32, error) {
 }
 
 func (d *Drsm) ReleaseInt32ID(id int32) error {
+	mutex.Lock()
+	defer mutex.Unlock()
 	if d.mode == ResourceDemux {
 		log.Println("Demux mode can not release Resource index ")
 		err := fmt.Errorf("Demux mode does not allow Resource Id allocation")
@@ -76,6 +83,7 @@ func (d *Drsm) ReleaseInt32ID(id int32) error {
 	chunk, found := d.localChunkTbl[chunkId]
 	if found == true {
 		chunk.ReleaseIntID(id)
+		log.Println("ID Released: ", id)
 		return nil
 	} else {
 		chunk, found := d.scanChunks[chunkId]
