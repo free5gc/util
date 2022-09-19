@@ -5,15 +5,17 @@ package drsm
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UpdatedFields struct {
 	ExpireAt time.Time `bson:"expireAt,omitempty"`
 	PodId    string    `bson:"podId,omitempty"`
+	PodIp    string    `bson:"podIp,omitempty"`
 }
 
 type UpdatedDesc struct {
@@ -153,6 +155,7 @@ func iterateChangeStream(d *Drsm, routineCtx context.Context, stream *mongo.Chan
 				cp := d.globalChunkTbl[c]
 				// TODO update IP address as well.
 				cp.Owner.PodName = owner
+				cp.Owner.PodIp = s.Update.UpdFields.PodIp
 				podD := d.podMap[owner]
 				podD.podChunks[c] = cp // add chunk to pod
 				log.Printf("pod to chunk map %v ", podD.podChunks)
@@ -163,8 +166,10 @@ func iterateChangeStream(d *Drsm, routineCtx context.Context, stream *mongo.Chan
 				// not chunk type doc. So its POD doc.
 				// delete olnly gets document id
 				pod, found := d.podMap[s.DId.Id]
-				log.Printf("Pod %v and  found %v. Chunks owned by crashed pod = %v ", pod, found, pod.podChunks)
-				d.podDown <- s.DId.Id
+				if pod != nil {
+					log.Printf("Pod %v and  found %v. Chunks owned by crashed pod = %v ", pod, found, pod.podChunks)
+					d.podDown <- s.DId.Id
+				}
 			}
 		}
 	}
