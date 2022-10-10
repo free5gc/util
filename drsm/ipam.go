@@ -6,25 +6,26 @@ package drsm
 import (
 	"context"
 	"fmt"
+
+	"github.com/omec-project/util/logger"
 	ipam "github.com/thakurajayL/go-ipam"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 )
 
 // TODO : should have ability to create new instances of ipam
 func (d *Drsm) initIpam(opt *Options) {
 	if opt != nil {
-		log.Println("ipmodule ", opt)
+		logger.AppLog.Debugf("ipmodule ", opt)
 	}
 	dbOptions := &options.ClientOptions{}
 	dbOptions = dbOptions.ApplyURI(d.db.Url)
 	dbConfig := ipam.MongoConfig{DatabaseName: d.db.Name, CollectionName: "ipaddress", MongoClientOptions: dbOptions}
 	mo, err := ipam.NewMongo(context.TODO(), dbConfig)
 	if err != nil {
-		log.Println("ipmodule error. NewMongo error  ", err)
+		logger.AppLog.Debugf("ipmodule error. NewMongo error  ", err)
 	}
 	ipModule := ipam.NewWithStorage(mo)
-	log.Println("ipmodule ", ipModule)
+	logger.AppLog.Debugf("ipmodule ", ipModule)
 	d.ipModule = ipModule
 	d.prefix = make(map[string]*ipam.Prefix)
 
@@ -35,7 +36,7 @@ func (d *Drsm) initIpam(opt *Options) {
 		}
 		d.prefix[k] = prefix
 	}
-	log.Println("ip module prefix ", d.prefix)
+	logger.AppLog.Debugf("ip module prefix ", d.prefix)
 }
 
 func (d *Drsm) initIpPool(name string, prefix string) error {
@@ -69,7 +70,7 @@ func (d *Drsm) acquireIp(name string) (string, error) {
 		err := fmt.Errorf("No address")
 		return "", err
 	}
-	log.Println("Acquired IP ", ip.IP)
+	logger.AppLog.Debugf("Acquired IP ", ip.IP)
 	return ip.IP.String(), nil
 }
 
@@ -82,10 +83,10 @@ func (d *Drsm) releaseIp(name, ip string) error {
 
 	err := d.ipModule.ReleaseIPFromPrefix(context.TODO(), prefix.Cidr, ip)
 	if err != nil {
-		log.Println("Release IP failed - ", ip)
+		logger.AppLog.Debugf("Release IP failed - ", ip)
 		err := fmt.Errorf("No address")
 		return err
 	}
-	log.Println("Release IP successful ", ip)
+	logger.AppLog.Debugf("Release IP successful ", ip)
 	return nil
 }

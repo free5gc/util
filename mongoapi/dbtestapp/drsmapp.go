@@ -6,10 +6,12 @@
 package main
 
 import (
-	"github.com/omec-project/util/drsm"
 	"log"
 	"os"
 	"time"
+
+	"github.com/omec-project/util/drsm"
+	"github.com/omec-project/util/logger"
 )
 
 type drsmInterface struct {
@@ -22,7 +24,7 @@ type drsmInterface struct {
 var drsmIntf drsmInterface
 
 func scanChunk(i int32) bool {
-	log.Println("Received callback from module to scan Chunk resource ", i)
+	logger.AppLog.Debugf("Received callback from module to scan Chunk resource ", i)
 	return false
 }
 
@@ -42,7 +44,7 @@ func initDrsm(resName string) {
 	t := time.Now().UnixNano()
 	opt := &drsm.Options{}
 	if t%2 == 0 {
-		log.Println("Running in Demux Mode")
+		logger.AppLog.Debugf("Running in Demux Mode")
 		drsmIntf.Mode = drsm.ResourceDemux
 	} else {
 		opt.ResourceValidCb = scanChunk
@@ -56,7 +58,7 @@ func initDrsm(resName string) {
 func AllocateInt32One(resName string) int32 {
 	id, err := drsmIntf.d.AllocateInt32ID()
 	if err != nil {
-		log.Println("Id allocation error ", err)
+		logger.AppLog.Debugf("Id allocation error ", err)
 		return 0
 	}
 	log.Printf("Received id %v ", id)
@@ -88,7 +90,7 @@ func AllocateInt32Many(resName string, number int32) []int32 {
 func ReleaseInt32One(resName string, resId int32) error {
 	err := drsmIntf.d.ReleaseInt32ID(resId)
 	if err != nil {
-		log.Println("Id release error ", err)
+		logger.AppLog.Debugf("Id release error ", err)
 		return err
 	}
 	return nil

@@ -4,12 +4,14 @@
 package drsm
 
 import (
-	MongoDBLibrary "github.com/omec-project/util/mongoapi"
-	ipam "github.com/thakurajayL/go-ipam"
 	"log"
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/omec-project/util/logger"
+	MongoDBLibrary "github.com/omec-project/util/mongoapi"
+	ipam "github.com/thakurajayL/go-ipam"
 )
 
 type chunkState int
@@ -63,7 +65,7 @@ type Drsm struct {
 func (d *Drsm) ConstuctDrsm(opt *Options) {
 	if opt != nil {
 		d.mode = opt.Mode
-		log.Println("drsm mode set to ", d.mode)
+		logger.AppLog.Debugf("drsm mode set to ", d.mode)
 		if opt.ResIdSize > 0 {
 			d.resIdSize = opt.ResIdSize
 		} else {
@@ -84,7 +86,7 @@ func (d *Drsm) ConstuctDrsm(opt *Options) {
 
 	//connect to DB
 	d.mongo, _ = MongoDBLibrary.SetMongoDB(d.db.Name, d.db.Url)
-	log.Println("SetMongoDB done ", d.db.Name)
+	logger.AppLog.Debugf("SetMongoDB done ", d.db.Name)
 
 	go d.handleDbUpdates()
 	go d.punchLiveness()

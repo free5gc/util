@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/omec-project/util/logger"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -109,7 +111,7 @@ func (d *Drsm) handleDbUpdates() {
 }
 
 func iterateChangeStream(d *Drsm, routineCtx context.Context, stream *mongo.ChangeStream) {
-	log.Println("iterate change stream for podData ", d)
+	logger.AppLog.Debugf("iterate change stream for podData ", d)
 
 	// step 1: Get Pod Keepalive triggers and create POD table
 	// case 2: Update Global Chunk Table.
@@ -127,26 +129,26 @@ func iterateChangeStream(d *Drsm, routineCtx context.Context, stream *mongo.Chan
 		var s streamDoc
 		bsonBytes, _ := bson.Marshal(data)
 		bson.Unmarshal(bsonBytes, &s)
-		//log.Println("iterate stream : ", data)
-		log.Printf("\ndecoded stream bson %+v \n", s)
+		//logger.AppLog.Debugf("iterate stream : ", data)
+		//log.Printf("\ndecoded stream bson %+v \n", s)
 		switch s.OpType {
 		case "insert":
 			full := &s.Full
 			switch full.Type {
 			case "keepalive":
-				//log.Println("insert keepalive document")
+				//logger.AppLog.Debugf("insert keepalive document")
 				pod, found := d.podMap[full.PodId]
 				if found == false {
 					d.addPod(full)
 				} else {
-					log.Println("keepalive insert document : found existing podId ", pod)
+					logger.AppLog.Debugf("keepalive insert document : found existing podId ", pod)
 				}
 			case "chunk":
-				//log.Println("insert chunk document")
+				//logger.AppLog.Debugf("insert chunk document")
 				d.addChunk(full)
 			}
 		case "update":
-			log.Println("update operations")
+			//logger.AppLog.Debugf("update operations")
 			if isChunkDoc(s.DId.Id) == true {
 				// update on chunkId..
 				// looks like chunk owner getting change
@@ -161,7 +163,7 @@ func iterateChangeStream(d *Drsm, routineCtx context.Context, stream *mongo.Chan
 				log.Printf("pod to chunk map %v ", podD.podChunks)
 			}
 		case "delete":
-			log.Println("delete operations")
+			logger.AppLog.Debugf("delete operations")
 			if isChunkDoc(s.DId.Id) == false {
 				// not chunk type doc. So its POD doc.
 				// delete olnly gets document id
@@ -179,18 +181,18 @@ func (d *Drsm) punchLiveness() {
 	// write to DB - signature every 5 second
 	ticker := time.NewTicker(5000 * time.Millisecond)
 
-	log.Println(" document expiry enabled")
+	logger.AppLog.Debugf(" document expiry enabled")
 	ret := d.mongo.RestfulAPICreateTTLIndex(d.sharedPoolName, 0, "expireAt")
 	if ret {
-		log.Println("TTL Index created for Field : expireAt in Collection")
+		logger.AppLog.Debugf("TTL Index created for Field : expireAt in Collection")
 	} else {
-		log.Println("TTL Index exists for Field : expireAt in Collection")
+		logger.AppLog.Debugf("TTL Index exists for Field : expireAt in Collection")
 	}
 
 	for {
 		select {
 		case <-ticker.C:
-			log.Println(" update keepalive time")
+			//logger.AppLog.Debugf(" update keepalive time")
 			filter := bson.M{"_id": d.clientId.PodName}
 
 			timein := time.Now().Local().Add(time.Second * 20)
@@ -199,7 +201,7 @@ func (d *Drsm) punchLiveness() {
 
 			_, err := d.mongo.PutOneCustomDataStructure(d.sharedPoolName, filter, update)
 			if err != nil {
-				log.Println("put data failed : ", err)
+				logger.AppLog.Debugf("put data failed : ", err)
 				// TODO : should we panic ?
 				continue
 			}
