@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/omec-project/util/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -24,7 +25,7 @@ func (d *Drsm) GetNewChunk() (*chunk, error) {
 	// We got to allocate new Chunk. We should select
 	// probable chunk number
 
-	log.Println("Allocate new chunk ")
+	logger.AppLog.Debugf("Allocate new chunk ")
 	// 14 bits --- 1,2,4,8,16
 	var cn int32 = 1
 	for {
@@ -34,7 +35,7 @@ func (d *Drsm) GetNewChunk() (*chunk, error) {
 			if found == true {
 				continue
 			}
-			log.Println("Found chunk Id block ", cn)
+			logger.AppLog.Debugf("Found chunk Id block ", cn)
 			break
 		}
 		// Let's confirm if this gets updated in DB
@@ -66,7 +67,7 @@ func (d *Drsm) GetNewChunk() (*chunk, error) {
 
 func (c *chunk) AllocateIntID() int32 {
 	if len(c.FreeIds) == 0 {
-		log.Println("FreeIds in chunk 0")
+		logger.AppLog.Debugf("FreeIds in chunk 0")
 		return 0
 	}
 	var s string

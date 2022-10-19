@@ -6,16 +6,18 @@ package drsm
 import (
 	"log"
 	"time"
+
+	"github.com/omec-project/util/logger"
 )
 
 func (c *chunk) scanChunk(d *Drsm) {
 	if d.mode == ResourceDemux {
-		log.Println("Don't perform scan task when demux mode is ON")
+		logger.AppLog.Debugf("Don't perform scan task when demux mode is ON")
 		return
 	}
 
 	if c.Owner.PodName != d.clientId.PodName {
-		log.Println("Don't perform scan task if Chunk is not owned by us")
+		logger.AppLog.Debugf("Don't perform scan task if Chunk is not owned by us")
 		return
 	}
 	c.State = Scanning
