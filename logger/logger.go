@@ -98,7 +98,7 @@ func createLogFile(file string, defaultName string, rename bool) (string, error)
 		}
 	}
 
-	if err := os.MkdirAll(directory, 0775); err != nil {
+	if err := os.MkdirAll(directory, 0o775); err != nil {
 		return "", fmt.Errorf("Make directory(%s) failed: %+v\n", directory, err)
 	}
 
@@ -114,7 +114,7 @@ func createLogFile(file string, defaultName string, rename bool) (string, error)
 		}
 
 		// Create log file or if it already exist, check if user can access it
-		if f, err := os.OpenFile(fullPath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666); err != nil {
+		if f, err := os.OpenFile(fullPath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o666); err != nil {
 			// user cannot access it.
 			return "", fmt.Errorf("Cannot Open [%s] error: %+v\n", fullPath, err)
 		} else {
