@@ -42,7 +42,7 @@ func (c *chunk) scanChunk(d *Drsm) {
 					if res == true {
 						c.FreeIds = append(c.FreeIds, id)
 					} else {
-						c.AllocIds[id] = true // Id is in use
+						c.AllocIds = append(c.AllocIds, id) // Id is in use
 					}
 				} else {
 					// mark as owned. and remove from scan list and add to local table
