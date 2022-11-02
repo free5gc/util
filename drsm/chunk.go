@@ -70,12 +70,6 @@ func (c *chunk) AllocateIntID() int32 {
 		logger.AppLog.Debugf("FreeIds in chunk 0")
 		return 0
 	}
-	var s string
-	for k, _ := range c.FreeIds {
-		s += fmt.Sprint(c.FreeIds[k])
-		s += " "
-	}
-	log.Printf("Free IDs: %s", s)
 	id := c.FreeIds[len(c.FreeIds)-1]
 	c.FreeIds = c.FreeIds[:len(c.FreeIds)-1]
 	return (c.Id << 10) | id
