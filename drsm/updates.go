@@ -25,7 +25,7 @@ type UpdatedDesc struct {
 }
 
 type FullStream struct {
-	Id       string    `bson:"_id,omitempty"`
+	Id       string    `bson:"chunkId,omitempty"`
 	PodId    string    `bson:"podId,omitempty"`
 	PodIp    string    `bson:"podIp,omitempty"`
 	ExpireAt time.Time `bson:"expireAt,omitempty"`
@@ -219,6 +219,7 @@ func (d *Drsm) checkAllChunks() {
 		case <-ticker.C:
 			filter := bson.M{"type": "chunk"}
 			result, err := d.mongo.RestfulAPIGetMany(d.sharedPoolName, filter)
+			log.Printf("chunk entry: %v", result)
 			if err == nil && result != nil {
 				for _, v := range result {
 					var s FullStream
@@ -240,6 +241,7 @@ func (d *Drsm) addChunk(full *FullStream) {
 		pod = d.addPod(full)
 	}
 	did := full.Id
+	log.Printf("received Chunk Doc: %v", full)
 	cid := getChunIdFromDocId(did)
 	o := PodId{PodName: full.PodId, PodIp: full.PodIp}
 	c := &chunk{Id: cid, Owner: o}
