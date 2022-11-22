@@ -7,13 +7,43 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"path"
 	"path/filepath"
+	"runtime"
 	"runtime/debug"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	formatter "github.com/tim-ywliu/nested-logrus-formatter"
+)
+
+const (
+	RFC3339Nano = "2006-01-02T15:04:05.000000000Z07:00"
+)
+
+const (
+	FieldNF                 string = "NF"
+	FieldCategory           string = "CAT"
+	FieldListenAddr         string = "LAddr"
+	FieldRemoteAddr         string = "RAddr"
+	FieldRanAddr            string = "RanAddr"
+	FieldRanID              string = "RanID"
+	FieldRanType            string = "RanTP"
+	FieldRanUeNgapID        string = "RUID"
+	FieldAmfUeNgapID        string = "AUID"
+	FieldSuci               string = "SUCI"
+	FieldSupi               string = "SUPI"
+	FieldPDUSessionID       string = "PDUID"
+	FieldControlPlaneNodeID string = "CPNID"
+	FieldUserPlaneNodeID    string = "UPNID"
+	FieldPFCPTxTransaction  string = "TXTR"
+	FieldPFCPRxTransaction  string = "RXTR"
+	FieldControlPlaneSEID   string = "CPSEID"
+	FieldUserPlaneSEID      string = "UPSEID"
+	FieldApplicationID      string = "APPID"
 )
 
 type FileHook struct {
@@ -24,14 +54,15 @@ type FileHook struct {
 }
 
 // Fire(*Entry) implementation for logrus Hook interface
-func (hook *FileHook) Fire(entry *logrus.Entry) error {
-	var line string
-	if plainformat, err := hook.formatter.Format(entry); err != nil {
+func (h *FileHook) Fire(entry *logrus.Entry) error {
+	plainformat, err := h.formatter.Format(entry)
+	if err != nil {
 		return fmt.Errorf("FileHook formatter error: %+v\n", err)
-	} else {
-		line = string(plainformat)
 	}
-	if _, err := hook.file.WriteString(line); err != nil {
+
+	line := string(plainformat)
+	_, err = h.file.WriteString(line)
+	if err != nil {
 		return fmt.Errorf("unable to write file on filehook(%s): %+v\n", line, err)
 	}
 
@@ -39,7 +70,7 @@ func (hook *FileHook) Fire(entry *logrus.Entry) error {
 }
 
 // Levels() implementation for logrus Hook interface
-func (hook *FileHook) Levels() []logrus.Level {
+func (h *FileHook) Levels() []logrus.Level {
 	return []logrus.Level{
 		logrus.PanicLevel,
 		logrus.FatalLevel,
@@ -52,7 +83,11 @@ func (hook *FileHook) Levels() []logrus.Level {
 }
 
 func NewFileHook(file string, flag int, chmod os.FileMode) (*FileHook, error) {
-	plainFormatter := &logrus.TextFormatter{DisableColors: true}
+	plainFormatter := &logrus.TextFormatter{
+		DisableColors:   true,
+		ForceQuote:      true,
+		TimestampFormat: RFC3339Nano,
+	}
 	logFile, err := os.OpenFile(file, flag, chmod)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open file(%s): %+v\n", file, err)
@@ -61,45 +96,77 @@ func NewFileHook(file string, flag int, chmod os.FileMode) (*FileHook, error) {
 	return &FileHook{logFile, flag, chmod, plainFormatter}, nil
 }
 
-func CreateFree5gcLogFile(file string) (string, error) {
-	// Because free5gc log file will be used by multiple NFs, it is not recommended to rename.
-	return createLogFile(file, "", false)
+func New(fieldsOrder []string) *logrus.Logger {
+	log := logrus.New()
+	log.SetReportCaller(false)
+
+	log.Formatter = &formatter.Formatter{
+		FieldsOrder:     fieldsOrder,
+		TimestampFormat: RFC3339Nano,
+		TrimMessages:    true,
+		NoFieldsSpace:   true,
+		HideKeys:        false,
+		HidePartialKeys: map[string]bool{
+			FieldNF:       true,
+			FieldCategory: true,
+			FieldRanID:    true,
+			FieldRanType:  true,
+			FieldSuci:     true,
+			FieldSupi:     true,
+		},
+		CustomCallerFormatter: func(f *runtime.Frame) string {
+			s := strings.Split(f.Function, ".")
+			funcName := s[len(s)-1]
+			return fmt.Sprintf(" [%s:%d][%s()]", path.Base(f.File), f.Line, funcName)
+		},
+	}
+	return log
 }
 
-func CreateNfLogFile(file string, defaultName string) (string, error) {
-	return createLogFile(file, defaultName, true)
+func LogFileHook(log *logrus.Logger, logPath string) error {
+	if log == nil {
+		return errors.New("LogFileHook err: nil logger")
+	}
+
+	filePath, err := createLogFile(logPath, false)
+	if err != nil {
+		return errors.Wrap(err, "LogFileHook err")
+	}
+
+	fhook, err := NewFileHook(
+		filePath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o666)
+	if err != nil {
+		return errors.Wrap(err, "LogFileHook err")
+	}
+	log.AddHook(fhook)
+
+	return nil
 }
 
 /*
  * createLogFile
  * @param file, The full file path from arguments input by user.
- * @param defaultName, Default log file name (if it is empty, it means no default log file will be created)
  * @param rename, Modify the file name if the file exists
- * @return error, fullPath
+ * @return filePath, error
  */
-func createLogFile(file string, defaultName string, rename bool) (string, error) {
-	var fullPath string
-	directory, fileName := filepath.Split(file)
-
-	if directory == "" || fileName == "" {
-		directory = "./log/"
-		fileName = defaultName
-	}
-
+func createLogFile(file string, rename bool) (string, error) {
+	dir, fileName := filepath.Split(file)
 	if fileName == "" {
-		return "", nil
+		return "", errors.New("no file path")
 	}
-
-	fullPath = filepath.Join(directory, fileName)
+	if dir == "" {
+		dir = "./log/"
+		file = filepath.Join(dir, fileName)
+	}
 
 	if rename {
-		if err := renameOldLogFile(fullPath); err != nil {
+		if err := renameOldLogFile(file); err != nil {
 			return "", err
 		}
 	}
 
-	if err := os.MkdirAll(directory, 0o775); err != nil {
-		return "", fmt.Errorf("Make directory(%s) failed: %+v\n", directory, err)
+	if err := os.MkdirAll(dir, 0o775); err != nil {
+		return "", errors.Errorf("Make dir(%s) failed: %+v\n", dir, err)
 	}
 
 	sudoUID, errUID := strconv.Atoi(os.Getenv("SUDO_UID"))
@@ -109,30 +176,34 @@ func createLogFile(file string, defaultName string, rename bool) (string, error)
 		// else errUID will not be nil and sudoUID will be nil
 		// If user using sudo to run the program and create log file, log will own by root,
 		// here we change own to user so user can view and reuse the file
-		if err := os.Chown(directory, sudoUID, sudoGID); err != nil {
-			return "", fmt.Errorf("Directory(%s) chown to [%d:%d] error: %+v\n", directory, sudoUID, sudoGID, err)
+		err := os.Chown(dir, sudoUID, sudoGID)
+		if err != nil {
+			return "", errors.Errorf("Dir(%s) chown to [%d:%d] error: %+v\n", dir, sudoUID, sudoGID, err)
 		}
 
 		// Create log file or if it already exist, check if user can access it
-		if f, err := os.OpenFile(fullPath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o666); err != nil {
+		f, err := os.OpenFile(file, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o666)
+		if err != nil {
 			// user cannot access it.
-			return "", fmt.Errorf("Cannot Open [%s] error: %+v\n", fullPath, err)
-		} else {
-			// user can access it
-			if err := f.Close(); err != nil {
-				return "", fmt.Errorf("File [%s] cannot been closed\n", fullPath)
-			}
-			if err := os.Chown(fullPath, sudoUID, sudoGID); err != nil {
-				return "", fmt.Errorf("File [%s] chown to [%d:%d] error: %+v\n", fullPath, sudoUID, sudoGID, err)
-			}
+			return "", errors.Errorf("Cannot Open [%s] error: %+v\n", file, err)
+		}
+
+		// user can access it
+		err = f.Close()
+		if err != nil {
+			return "", errors.Errorf("File [%s] cannot been closed\n", file)
+		}
+		err = os.Chown(file, sudoUID, sudoGID)
+		if err != nil {
+			return "", errors.Errorf("File [%s] chown to [%d:%d] error: %+v\n", file, sudoUID, sudoGID, err)
 		}
 	}
 
-	return fullPath, nil
+	return file, nil
 }
 
-func renameOldLogFile(fullPath string) error {
-	_, err := os.Stat(fullPath)
+func renameOldLogFile(file string) error {
+	_, err := os.Stat(file)
 
 	if os.IsNotExist(err) {
 		return nil
@@ -140,23 +211,24 @@ func renameOldLogFile(fullPath string) error {
 
 	counter := 0
 	sep := "."
-	fileDir, fileName := filepath.Split(fullPath)
+	fileDir, fileName := filepath.Split(file)
 
-	if contents, err := ioutil.ReadDir(fileDir); err != nil {
-		return fmt.Errorf("Reads the directory(%s) error %+v\n", fileDir, err)
-	} else {
-		for _, content := range contents {
-			if !content.IsDir() {
-				if strings.Contains(content.Name(), (fileName + sep)) {
-					counter++
-				}
+	contents, err := ioutil.ReadDir(fileDir)
+	if err != nil {
+		return errors.Errorf("Reads the directory(%s) error %+v\n", fileDir, err)
+	}
+	for _, content := range contents {
+		if !content.IsDir() {
+			if strings.Contains(content.Name(), (fileName + sep)) {
+				counter++
 			}
 		}
 	}
 
-	newFullPath := fmt.Sprintf("%s%s%s%d", fileDir, fileName, sep, (counter + 1))
-	if err := os.Rename(fullPath, newFullPath); err != nil {
-		return fmt.Errorf("Unable to rename file(%s) %+v\n", newFullPath, err)
+	newFile := fmt.Sprintf("%s%s%s%d", fileDir, fileName, sep, (counter + 1))
+	err = os.Rename(file, newFile)
+	if err != nil {
+		return errors.Errorf("Unable to rename file(%s) %+v\n", newFile, err)
 	}
 
 	return nil

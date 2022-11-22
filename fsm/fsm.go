@@ -5,12 +5,17 @@ import (
 	"os"
 	"strings"
 
-	"github.com/free5gc/util/fsm/logger"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type (
 	EventType string
 	ArgsType  map[string]interface{}
+)
+
+const (
+	ArgCallerInfo string = "CallerInfo"
 )
 
 type (
@@ -62,7 +67,7 @@ func NewFSM(transitions Transitions, callbacks Callbacks) (*FSM, error) {
 			From:  transition.From,
 		}
 		if _, ok := fsm.transitions[key]; ok {
-			return nil, fmt.Errorf("Duplicate transition: %+v", transition)
+			return nil, errors.Errorf("Duplicate transition: %+v", transition)
 		} else {
 			fsm.transitions[key] = transition
 			allStates[transition.From] = true
@@ -72,7 +77,7 @@ func NewFSM(transitions Transitions, callbacks Callbacks) (*FSM, error) {
 
 	for state, callback := range callbacks {
 		if _, ok := allStates[state]; !ok {
-			return nil, fmt.Errorf("Unknown state: %+v", state)
+			return nil, errors.Errorf("Unknown state: %+v", state)
 		} else {
 			fsm.callbacks[state] = callback
 		}
@@ -85,14 +90,20 @@ func NewFSM(transitions Transitions, callbacks Callbacks) (*FSM, error) {
 //  - on exit callback: call when fsm leave one state, with ExitEvent event
 //  - event callback: call when user trigger a user-defined event
 //  - on entry callback: call when fsm enter one state, with EntryEvent event
-func (fsm *FSM) SendEvent(state *State, event EventType, args ArgsType) error {
+func (fsm *FSM) SendEvent(state *State, event EventType, args ArgsType, log *logrus.Entry) error {
 	key := eventKey{
 		From:  state.Current(),
 		Event: event,
 	}
 
 	if trans, ok := fsm.transitions[key]; ok {
-		logger.FsmLog.Infof("Handle event[%s], transition from [%s] to [%s]", event, trans.From, trans.To)
+		callerInfo := ""
+		if argCallerInfo, ok2 := args[ArgCallerInfo]; ok2 {
+			callerInfo = fmt.Sprintf("[%s] ", argCallerInfo.(string))
+		}
+
+		log.Infof("%sHandle event[%s], transition from [%s] to [%s]",
+			callerInfo, event, trans.From, trans.To)
 
 		// event callback
 		fsm.callbacks[trans.From](state, event, args)
@@ -109,7 +120,7 @@ func (fsm *FSM) SendEvent(state *State, event EventType, args ArgsType) error {
 		}
 		return nil
 	} else {
-		return fmt.Errorf("Unknown transition[From: %s, Event: %s]", state.Current(), event)
+		return errors.Errorf("Unknown transition[From: %s, Event: %s]", state.Current(), event)
 	}
 }
 
