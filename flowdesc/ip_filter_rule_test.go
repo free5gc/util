@@ -8,6 +8,7 @@ import (
 )
 
 func TestIPFilterRuleEncode(t *testing.T) {
+	var err error
 	testStr1 := "permit out ip from any to assigned 655"
 
 	rule := NewIPFilterRule()
@@ -15,27 +16,13 @@ func TestIPFilterRuleEncode(t *testing.T) {
 		t.Fatal("IP Filter Rule Create Error")
 	}
 
-	if err := rule.SetAction(Permit); err != nil {
-		assert.Nil(t, err)
-	}
-
-	if err := rule.SetDirection(Out); err != nil {
-		assert.Nil(t, err)
-	}
-
-	if err := rule.SetProtocol(0xfc); err != nil {
-		assert.Nil(t, err)
-	}
-
-	if err := rule.SetSourceIP("any"); err != nil {
-		assert.Nil(t, err)
-	}
-
-	if err := rule.SetDestinationIP("assigned"); err != nil {
-		assert.Nil(t, err)
-	}
-
-	if err := rule.SetDestinationPorts("655"); err != nil {
+	rule.Action = Permit
+	rule.Dir = Out
+	rule.Proto = 0xfc
+	rule.Src = "any"
+	rule.Dst = "assigned"
+	rule.DstPorts, err = ParsePorts("655")
+	if err != nil {
 		assert.Nil(t, err)
 	}
 
@@ -125,13 +112,13 @@ func TestIPFilterRuleDecode(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			r, err := Decode(expected.filterRule)
 
-			require.Equal(t, expected.action, r.GetAction())
-			require.Equal(t, expected.dir, r.GetDirection())
-			require.Equal(t, expected.proto, r.GetProtocol())
-			require.Equal(t, expected.src, r.GetSourceIP())
-			require.Equal(t, expected.srcPorts, r.GetSourcePorts())
-			require.Equal(t, expected.dst, r.GetDestinationIP())
-			require.Equal(t, expected.dstPorts, r.GetDestinationPorts())
+			require.Equal(t, expected.action, r.Action)
+			require.Equal(t, expected.dir, r.Dir)
+			require.Equal(t, expected.proto, r.Proto)
+			require.Equal(t, expected.src, r.Src)
+			require.Equal(t, expected.srcPorts, r.SrcPorts.String())
+			require.Equal(t, expected.dst, r.Dst)
+			require.Equal(t, expected.dstPorts, r.DstPorts.String())
 
 			require.NoError(t, err)
 		})
@@ -214,14 +201,14 @@ func TestIPFilterRuleSwapSourceAndDestination(t *testing.T) {
 	for testName, expected := range testCases {
 		t.Run(testName, func(t *testing.T) {
 			r, err := Decode(expected.filterRule)
-			r.SwapSourceAndDestination()
-			require.Equal(t, expected.action, r.GetAction())
-			require.Equal(t, expected.dir, r.GetDirection())
-			require.Equal(t, expected.proto, r.GetProtocol())
-			require.Equal(t, expected.src, r.GetSourceIP())
-			require.Equal(t, expected.srcPorts, r.GetSourcePorts())
-			require.Equal(t, expected.dst, r.GetDestinationIP())
-			require.Equal(t, expected.dstPorts, r.GetDestinationPorts())
+			r.SwapSrcAndDst()
+			require.Equal(t, expected.action, r.Action)
+			require.Equal(t, expected.dir, r.Dir)
+			require.Equal(t, expected.proto, r.Proto)
+			require.Equal(t, expected.src, r.Src)
+			require.Equal(t, expected.srcPorts, r.SrcPorts.String())
+			require.Equal(t, expected.dst, r.Dst)
+			require.Equal(t, expected.dstPorts, r.DstPorts.String())
 
 			require.NoError(t, err)
 		})
