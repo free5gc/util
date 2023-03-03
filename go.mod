@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/evanphx/json-patch v0.5.2
-	github.com/gin-gonic/gin v1.7.3
+	github.com/gin-gonic/gin v1.7.7
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
