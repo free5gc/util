@@ -32,9 +32,15 @@ func SetMongoDB(setdbName string, url string) error {
 	return nil
 }
 
-func findOneAndDecode(collection *mongo.Collection, filter bson.M) (map[string]interface{}, error) {
+func findOneAndDecode(collection *mongo.Collection, filter bson.M, argOpt ...int) (map[string]interface{}, error) {
 	var result map[string]interface{}
-	if err := collection.FindOne(context.TODO(), filter).Decode(&result); err != nil {
+	opts := new(options.FindOneOptions)
+	if len(argOpt) > 0 {
+		myCollation := &options.Collation{Locale: "en_US", Strength: argOpt[0]}
+		opts.SetCollation(myCollation)
+	}
+
+	if err := collection.FindOne(context.TODO(), filter, opts).Decode(&result); err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in
 		// the collection.
 		if err == mongo.ErrNoDocuments {
@@ -45,8 +51,15 @@ func findOneAndDecode(collection *mongo.Collection, filter bson.M) (map[string]i
 	return result, nil
 }
 
-func getOrigData(collection *mongo.Collection, filter bson.M) (map[string]interface{}, error) {
-	result, err := findOneAndDecode(collection, filter)
+func getOrigData(collection *mongo.Collection, filter bson.M, argOpt ...int) (
+	result map[string]interface{}, err error,
+) {
+	if len(argOpt) == 0 {
+		result, err = findOneAndDecode(collection, filter)
+	} else {
+		result, err = findOneAndDecode(collection, filter, argOpt[0])
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -68,21 +81,33 @@ func checkDataExisted(collection *mongo.Collection, filter bson.M) (bool, error)
 	return true, nil
 }
 
-func RestfulAPIGetOne(collName string, filter bson.M) (map[string]interface{}, error) {
+func RestfulAPIGetOne(collName string, filter bson.M, argOpt ...int) (result map[string]interface{}, err error) {
 	collection := Client.Database(dbName).Collection(collName)
-	result, err := getOrigData(collection, filter)
+	if len(argOpt) == 0 {
+		result, err = getOrigData(collection, filter)
+	} else {
+		result, err = getOrigData(collection, filter, argOpt[0])
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("RestfulAPIGetOne err: %+v", err)
 	}
 	return result, nil
 }
 
-func RestfulAPIGetMany(collName string, filter bson.M) ([]map[string]interface{}, error) {
+func RestfulAPIGetMany(collName string, filter bson.M, argOpt ...int) ([]map[string]interface{}, error) {
 	collection := Client.Database(dbName).Collection(collName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	cur, err := collection.Find(ctx, filter)
+
+	opts := new(options.FindOptions)
+	if len(argOpt) > 0 {
+		myCollation := &options.Collation{Locale: "en_US", Strength: argOpt[0]}
+		opts.SetCollation(myCollation)
+	}
+
+	cur, err := collection.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, fmt.Errorf("RestfulAPIGetMany err: %+v", err)
 	}
