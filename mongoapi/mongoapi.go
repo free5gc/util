@@ -32,22 +32,33 @@ func SetMongoDB(setdbName string, url string) error {
 	return nil
 }
 
+func getCollation(argOpt ...interface{}) *options.Collation {
+	if len(argOpt) == 0 {
+		return nil
+	}
+	strength, ok := argOpt[0].(int)
+	if !ok {
+		return nil
+	}
+	// Strength 2: Case insensitive, 3: Case sensitive (default)
+	return &options.Collation{Locale: "en_US", Strength: strength}
+}
+
 func findOneAndDecode(collection *mongo.Collection, filter bson.M, argOpt ...interface{}) (
 	map[string]interface{}, error,
 ) {
 	var result map[string]interface{}
-	opts := new(options.FindOneOptions)
-	if len(argOpt) > 0 {
-		strength, ok := argOpt[0].(int)
-		if !ok {
-			return nil, fmt.Errorf("argOpt[0] type is not int")
-		}
-		// Strength 2: Case insensitive, 3: Case sensitive (default)
-		myCollation := &options.Collation{Locale: "en_US", Strength: strength}
-		opts.SetCollation(myCollation)
+	var err error
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts := new(options.FindOneOptions)
+		opts.SetCollation(collation)
+		err = collection.FindOne(context.TODO(), filter, opts).Decode(&result)
+	} else {
+		err = collection.FindOne(context.TODO(), filter).Decode(&result)
 	}
 
-	if err := collection.FindOne(context.TODO(), filter, opts).Decode(&result); err != nil {
+	if err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in
 		// the collection.
 		if err == mongo.ErrNoDocuments {
@@ -83,7 +94,7 @@ func checkDataExisted(collection *mongo.Collection, filter bson.M, argOpt ...int
 	return true, nil
 }
 
-func RestfulAPIGetOne(collName string, filter bson.M, argOpt ...int) (result map[string]interface{}, err error) {
+func RestfulAPIGetOne(collName string, filter bson.M) (result map[string]interface{}, err error) {
 	return RestfulAPIGetOneWithArg(collName, filter)
 }
 
@@ -109,18 +120,17 @@ func RestfulAPIGetManyWithArg(collName string, filter bson.M, argOpt ...interfac
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	opts := new(options.FindOptions)
-	if len(argOpt) > 0 {
-		strength, ok := argOpt[0].(int)
-		if !ok {
-			return nil, fmt.Errorf("argOpt[0] type is not int")
-		}
-		// Strength 2: Case insensitive, 3: Case sensitive (default)
-		myCollation := &options.Collation{Locale: "en_US", Strength: strength}
-		opts.SetCollation(myCollation)
+	var cur *mongo.Cursor
+	var err error
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts := new(options.FindOptions)
+		opts.SetCollation(collation)
+		cur, err = collection.Find(ctx, filter, opts)
+	} else {
+		cur, err = collection.Find(ctx, filter)
 	}
 
-	cur, err := collection.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, fmt.Errorf("RestfulAPIGetMany err: %+v", err)
 	}
@@ -184,18 +194,17 @@ func RestfulAPIPullOneWithArg(collName string, filter bson.M,
 ) error {
 	collection := Client.Database(dbName).Collection(collName)
 
-	opts := new(options.UpdateOptions)
-	if len(argOpt) > 0 {
-		strength, ok := argOpt[0].(int)
-		if !ok {
-			return fmt.Errorf("argOpt[0] type is not int")
-		}
-		// Strength 2: Case insensitive, 3: Case sensitive (default)
-		myCollation := &options.Collation{Locale: "en_US", Strength: strength}
-		opts.SetCollation(myCollation)
+	var err error
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts := new(options.UpdateOptions)
+		opts.SetCollation(collation)
+		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$pull": putData}, opts)
+	} else {
+		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$pull": putData})
 	}
 
-	if _, err := collection.UpdateOne(context.TODO(), filter, bson.M{"$pull": putData}, opts); err != nil {
+	if err != nil {
 		return fmt.Errorf("RestfulAPIPullOne err: %+v", err)
 	}
 	return nil
@@ -262,18 +271,17 @@ func RestfulAPIDeleteOne(collName string, filter bson.M) error {
 func RestfulAPIDeleteOneWithArg(collName string, filter bson.M, argOpt ...interface{}) error {
 	collection := Client.Database(dbName).Collection(collName)
 
-	opts := new(options.DeleteOptions)
-	if len(argOpt) > 0 {
-		strength, ok := argOpt[0].(int)
-		if !ok {
-			return fmt.Errorf("argOpt[0] type is not int")
-		}
-		// Strength 2: Case insensitive, 3: Case sensitive (default)
-		myCollation := &options.Collation{Locale: "en_US", Strength: strength}
-		opts.SetCollation(myCollation)
+	var err error
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts := new(options.DeleteOptions)
+		opts.SetCollation(collation)
+		_, err = collection.DeleteOne(context.TODO(), filter, opts)
+	} else {
+		_, err = collection.DeleteOne(context.TODO(), filter)
 	}
 
-	if _, err := collection.DeleteOne(context.TODO(), filter, opts); err != nil {
+	if err != nil {
 		return fmt.Errorf("RestfulAPIDeleteOne err: %+v", err)
 	}
 	return nil
@@ -286,18 +294,17 @@ func RestfulAPIDeleteMany(collName string, filter bson.M) error {
 func RestfulAPIDeleteManyWithArg(collName string, filter bson.M, argOpt ...interface{}) error {
 	collection := Client.Database(dbName).Collection(collName)
 
-	opts := new(options.DeleteOptions)
-	if len(argOpt) > 0 {
-		strength, ok := argOpt[0].(int)
-		if !ok {
-			return fmt.Errorf("argOpt[0] type is not int")
-		}
-		// Strength 2: Case insensitive, 3: Case sensitive (default)
-		myCollation := &options.Collation{Locale: "en_US", Strength: strength}
-		opts.SetCollation(myCollation)
+	var err error
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts := new(options.DeleteOptions)
+		opts.SetCollation(collation)
+		_, err = collection.DeleteMany(context.TODO(), filter, opts)
+	} else {
+		_, err = collection.DeleteMany(context.TODO(), filter)
 	}
 
-	if _, err := collection.DeleteMany(context.TODO(), filter, opts); err != nil {
+	if err != nil {
 		return fmt.Errorf("RestfulAPIDeleteMany err: %+v", err)
 	}
 	return nil
@@ -333,22 +340,20 @@ func RestfulAPIMergePatchWithArg(
 	}
 
 	var modifiedData map[string]interface{}
-	if err := json.Unmarshal(modifiedAlternative, &modifiedData); err != nil {
+	if err = json.Unmarshal(modifiedAlternative, &modifiedData); err != nil {
 		return fmt.Errorf("RestfulAPIMergePatch Unmarshal err: %+v", err)
 	}
 
-	opts := new(options.UpdateOptions)
-	if len(argOpt) > 0 {
-		strength, ok := argOpt[0].(int)
-		if !ok {
-			return fmt.Errorf("argOpt[0] type is not int")
-		}
-		// Strength 2: Case insensitive, 3: Case sensitive (default)
-		myCollation := &options.Collation{Locale: "en_US", Strength: strength}
-		opts.SetCollation(myCollation)
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts := new(options.UpdateOptions)
+		opts.SetCollation(collation)
+		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData}, opts)
+	} else {
+		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData})
 	}
 
-	if _, err := collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData}, opts); err != nil {
+	if err != nil {
 		return fmt.Errorf("RestfulAPIMergePatch UpdateOne err: %+v", err)
 	}
 	return nil
@@ -382,24 +387,23 @@ func RestfulAPIJSONPatchWithArg(collName string, filter bson.M, patchJSON []byte
 	}
 
 	var modifiedData map[string]interface{}
-	if err := json.Unmarshal(modified, &modifiedData); err != nil {
+	if err = json.Unmarshal(modified, &modifiedData); err != nil {
 		return fmt.Errorf("RestfulAPIJSONPatch Unmarshal err: %+v", err)
 	}
 
-	opts := new(options.UpdateOptions)
-	if len(argOpt) > 0 {
-		strength, ok := argOpt[0].(int)
-		if !ok {
-			return fmt.Errorf("argOpt[0] type is not int")
-		}
-		// Strength 2: Case insensitive, 3: Case sensitive (default)
-		myCollation := &options.Collation{Locale: "en_US", Strength: strength}
-		opts.SetCollation(myCollation)
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts := new(options.UpdateOptions)
+		opts.SetCollation(collation)
+		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData}, opts)
+	} else {
+		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData})
 	}
 
-	if _, err := collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData}, opts); err != nil {
+	if err != nil {
 		return fmt.Errorf("RestfulAPIJSONPatch UpdateOne err: %+v", err)
 	}
+
 	return nil
 }
 
@@ -434,24 +438,20 @@ func RestfulAPIJSONPatchExtendWithArg(
 	}
 
 	var modifiedData map[string]interface{}
-	if err := json.Unmarshal(modified, &modifiedData); err != nil {
+	if err = json.Unmarshal(modified, &modifiedData); err != nil {
 		return fmt.Errorf("RestfulAPIJSONPatchExtend Unmarshal err: %+v", err)
 	}
 
-	opts := new(options.UpdateOptions)
-	if len(argOpt) > 0 {
-		strength, ok := argOpt[0].(int)
-		if !ok {
-			return fmt.Errorf("argOpt[0] type is not int")
-		}
-		// Strength 2: Case insensitive, 3: Case sensitive (default)
-		myCollation := &options.Collation{Locale: "en_US", Strength: strength}
-		opts.SetCollation(myCollation)
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts := new(options.UpdateOptions)
+		opts.SetCollation(collation)
+		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData}, opts)
+	} else {
+		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData})
 	}
 
-	if _, err := collection.UpdateOne(
-		context.TODO(), filter, bson.M{"$set": bson.M{dataName: modifiedData}}, opts,
-	); err != nil {
+	if err != nil {
 		return fmt.Errorf("RestfulAPIJSONPatchExtend UpdateOne err: %+v", err)
 	}
 	return nil
