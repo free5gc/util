@@ -56,7 +56,7 @@ func (idGenerator *IDGenerator) Allocate() (int64, error) {
 }
 
 // param:
-//  - id: id to free
+//   - id: id to free
 func (idGenerator *IDGenerator) FreeID(id int64) {
 	if id < idGenerator.minValue || id > idGenerator.maxValue {
 		return

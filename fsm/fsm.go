@@ -87,9 +87,9 @@ func NewFSM(transitions Transitions, callbacks Callbacks) (*FSM, error) {
 
 // SendEvent triggers a callback with an event, and do transition after callback if need
 // There are 3 types of callback:
-//  - on exit callback: call when fsm leave one state, with ExitEvent event
-//  - event callback: call when user trigger a user-defined event
-//  - on entry callback: call when fsm enter one state, with EntryEvent event
+//   - on exit callback: call when fsm leave one state, with ExitEvent event
+//   - event callback: call when user trigger a user-defined event
+//   - on entry callback: call when fsm enter one state, with EntryEvent event
 func (fsm *FSM) SendEvent(state *State, event EventType, args ArgsType, log *logrus.Entry) error {
 	key := eventKey{
 		From:  state.Current(),
