@@ -17,6 +17,12 @@ var (
 	dbName string
 )
 
+const (
+	COLLATION_STRENGTH_IGNORE_DIACRITICS_AND_CASE int = iota + 1
+	COLLATION_STRENGTH_IGNORE_CASE
+	COLLATION_STRENGTH_DEFAULT
+)
+
 func SetMongoDB(setdbName string, url string) error {
 	if Client != nil {
 		return nil
