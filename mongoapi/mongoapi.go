@@ -100,11 +100,7 @@ func checkDataExisted(collection *mongo.Collection, filter bson.M, argOpt ...int
 	return true, nil
 }
 
-func RestfulAPIGetOne(collName string, filter bson.M) (result map[string]interface{}, err error) {
-	return RestfulAPIGetOneWithArg(collName, filter)
-}
-
-func RestfulAPIGetOneWithArg(collName string, filter bson.M, argOpt ...interface{}) (
+func RestfulAPIGetOne(collName string, filter bson.M, argOpt ...interface{}) (
 	result map[string]interface{}, err error,
 ) {
 	collection := Client.Database(dbName).Collection(collName)
@@ -116,11 +112,7 @@ func RestfulAPIGetOneWithArg(collName string, filter bson.M, argOpt ...interface
 	return result, nil
 }
 
-func RestfulAPIGetMany(collName string, filter bson.M) ([]map[string]interface{}, error) {
-	return RestfulAPIGetManyWithArg(collName, filter)
-}
-
-func RestfulAPIGetManyWithArg(collName string, filter bson.M, argOpt ...interface{}) ([]map[string]interface{}, error) {
+func RestfulAPIGetMany(collName string, filter bson.M, argOpt ...interface{}) ([]map[string]interface{}, error) {
 	collection := Client.Database(dbName).Collection(collName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -165,11 +157,7 @@ func RestfulAPIGetManyWithArg(collName string, filter bson.M, argOpt ...interfac
 }
 
 // if no error happened, return true means data existed and false means data not existed
-func RestfulAPIPutOne(collName string, filter bson.M, putData map[string]interface{}) (bool, error) {
-	return RestfulAPIPutOneWithArg(collName, filter, putData)
-}
-
-func RestfulAPIPutOneWithArg(collName string, filter bson.M, putData map[string]interface{}, argOpt ...interface{}) (
+func RestfulAPIPutOne(collName string, filter bson.M, putData map[string]interface{}, argOpt ...interface{}) (
 	bool, error,
 ) {
 	collection := Client.Database(dbName).Collection(collName)
@@ -191,11 +179,7 @@ func RestfulAPIPutOneWithArg(collName string, filter bson.M, putData map[string]
 	return false, nil
 }
 
-func RestfulAPIPullOne(collName string, filter bson.M, putData map[string]interface{}) error {
-	return RestfulAPIPullOneWithArg(collName, filter, putData)
-}
-
-func RestfulAPIPullOneWithArg(collName string, filter bson.M,
+func RestfulAPIPullOne(collName string, filter bson.M,
 	putData map[string]interface{}, argOpt ...interface{},
 ) error {
 	collection := Client.Database(dbName).Collection(collName)
@@ -217,12 +201,9 @@ func RestfulAPIPullOneWithArg(collName string, filter bson.M,
 }
 
 // if no error happened, return true means data existed (not updated) and false means data not existed
-func RestfulAPIPutOneNotUpdate(collName string, filter bson.M, putData map[string]interface{}) (bool, error) {
-	return RestfulAPIPutOneNotUpdateWithArg(collName, filter, putData)
-}
-
-func RestfulAPIPutOneNotUpdateWithArg(
-	collName string, filter bson.M, putData map[string]interface{}, argOpt ...interface{}) (
+func RestfulAPIPutOneNotUpdate(
+	collName string, filter bson.M, putData map[string]interface{}, argOpt ...interface{},
+) (
 	bool, error,
 ) {
 	collection := Client.Database(dbName).Collection(collName)
@@ -241,11 +222,7 @@ func RestfulAPIPutOneNotUpdateWithArg(
 	return false, nil
 }
 
-func RestfulAPIPutMany(collName string, filterArray []bson.M, putDataArray []map[string]interface{}) error {
-	return RestfulAPIPutManyWithArg(collName, filterArray, putDataArray)
-}
-
-func RestfulAPIPutManyWithArg(
+func RestfulAPIPutMany(
 	collName string, filterArray []bson.M, putDataArray []map[string]interface{}, argOpt ...interface{},
 ) error {
 	collection := Client.Database(dbName).Collection(collName)
@@ -270,11 +247,7 @@ func RestfulAPIPutManyWithArg(
 	return nil
 }
 
-func RestfulAPIDeleteOne(collName string, filter bson.M) error {
-	return RestfulAPIDeleteOneWithArg(collName, filter)
-}
-
-func RestfulAPIDeleteOneWithArg(collName string, filter bson.M, argOpt ...interface{}) error {
+func RestfulAPIDeleteOne(collName string, filter bson.M, argOpt ...interface{}) error {
 	collection := Client.Database(dbName).Collection(collName)
 
 	var err error
@@ -293,11 +266,7 @@ func RestfulAPIDeleteOneWithArg(collName string, filter bson.M, argOpt ...interf
 	return nil
 }
 
-func RestfulAPIDeleteMany(collName string, filter bson.M) error {
-	return RestfulAPIDeleteManyWithArg(collName, filter)
-}
-
-func RestfulAPIDeleteManyWithArg(collName string, filter bson.M, argOpt ...interface{}) error {
+func RestfulAPIDeleteMany(collName string, filter bson.M, argOpt ...interface{}) error {
 	collection := Client.Database(dbName).Collection(collName)
 
 	var err error
@@ -316,11 +285,7 @@ func RestfulAPIDeleteManyWithArg(collName string, filter bson.M, argOpt ...inter
 	return nil
 }
 
-func RestfulAPIMergePatch(collName string, filter bson.M, patchData map[string]interface{}) error {
-	return RestfulAPIMergePatchWithArg(collName, filter, patchData)
-}
-
-func RestfulAPIMergePatchWithArg(
+func RestfulAPIMergePatch(
 	collName string, filter bson.M, patchData map[string]interface{}, argOpt ...interface{},
 ) error {
 	collection := Client.Database(dbName).Collection(collName)
@@ -365,11 +330,7 @@ func RestfulAPIMergePatchWithArg(
 	return nil
 }
 
-func RestfulAPIJSONPatch(collName string, filter bson.M, patchJSON []byte) error {
-	return RestfulAPIJSONPatchWithArg(collName, filter, patchJSON)
-}
-
-func RestfulAPIJSONPatchWithArg(collName string, filter bson.M, patchJSON []byte, argOpt ...interface{}) error {
+func RestfulAPIJSONPatch(collName string, filter bson.M, patchJSON []byte, argOpt ...interface{}) error {
 	collection := Client.Database(dbName).Collection(collName)
 
 	originalData, err := getOrigData(collection, filter, argOpt...)
@@ -413,11 +374,7 @@ func RestfulAPIJSONPatchWithArg(collName string, filter bson.M, patchJSON []byte
 	return nil
 }
 
-func RestfulAPIJSONPatchExtend(collName string, filter bson.M, patchJSON []byte, dataName string) error {
-	return RestfulAPIJSONPatchExtendWithArg(collName, filter, patchJSON, dataName)
-}
-
-func RestfulAPIJSONPatchExtendWithArg(
+func RestfulAPIJSONPatchExtend(
 	collName string, filter bson.M, patchJSON []byte, dataName string, argOpt ...interface{},
 ) error {
 	collection := Client.Database(dbName).Collection(collName)
@@ -463,14 +420,10 @@ func RestfulAPIJSONPatchExtendWithArg(
 	return nil
 }
 
-func RestfulAPIPost(collName string, filter bson.M, postData map[string]interface{}) (bool, error) {
-	return RestfulAPIPutOne(collName, filter, postData)
-}
-
-func RestfulAPIPostWithArg(
+func RestfulAPIPost(
 	collName string, filter bson.M, postData map[string]interface{}, argOpt ...interface{},
 ) (bool, error) {
-	return RestfulAPIPutOneWithArg(collName, filter, postData, argOpt...)
+	return RestfulAPIPutOne(collName, filter, postData, argOpt...)
 }
 
 func RestfulAPIPostMany(collName string, filter bson.M, postDataArray []interface{}) error {
