@@ -1,6 +1,6 @@
 module github.com/free5gc/util
 
-go 1.17
+go 1.20
 
 require (
 	github.com/evanphx/json-patch v0.5.2
