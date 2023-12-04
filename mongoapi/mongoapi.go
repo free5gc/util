@@ -166,8 +166,15 @@ func RestfulAPIPutOne(collName string, filter bson.M, putData map[string]interfa
 		return false, fmt.Errorf("RestfulAPIPutOne err: %+v", err)
 	}
 
+	var opts *options.UpdateOptions
+	collation := getCollation(argOpt...)
+	if collation != nil {
+		opts = new(options.UpdateOptions)
+		opts.SetCollation(collation)
+	}
+
 	if existed {
-		if _, err := collection.UpdateOne(context.TODO(), filter, bson.M{"$set": putData}); err != nil {
+		if _, err := collection.UpdateOne(context.TODO(), filter, bson.M{"$set": putData}, opts); err != nil {
 			return false, fmt.Errorf("RestfulAPIPutOne UpdateOne err: %+v", err)
 		}
 		return true, nil
