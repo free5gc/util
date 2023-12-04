@@ -168,7 +168,7 @@ func Encode(r *IPFilterRule) (string, error) {
 			return "", flowDescErrorf("destination addresses format error %s", dst)
 		}
 	} else {
-		ipFilterRuleStr = append(ipFilterRuleStr, "any")
+		ipFilterRuleStr = append(ipFilterRuleStr, "assigned")
 	}
 
 	dstPort := r.DstPorts.String()
