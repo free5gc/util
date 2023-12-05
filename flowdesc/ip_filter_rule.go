@@ -28,6 +28,11 @@ const (
 	Out Direction = "out"
 )
 
+const (
+	Any      string = "any"
+	Assigned string = "assigned"
+)
+
 func flowDescErrorf(format string, a ...interface{}) error {
 	msg := fmt.Sprintf(format, a...)
 	return fmt.Errorf("flowdesc: %s", msg)
@@ -144,7 +149,7 @@ func Encode(r *IPFilterRule) (string, error) {
 			return "", flowDescErrorf("source addresses format error %s", src)
 		}
 	} else {
-		ipFilterRuleStr = append(ipFilterRuleStr, "any")
+		ipFilterRuleStr = append(ipFilterRuleStr, Any)
 	}
 
 	srcPort := r.SrcPorts.String()
@@ -168,7 +173,7 @@ func Encode(r *IPFilterRule) (string, error) {
 			return "", flowDescErrorf("destination addresses format error %s", dst)
 		}
 	} else {
-		ipFilterRuleStr = append(ipFilterRuleStr, "any")
+		ipFilterRuleStr = append(ipFilterRuleStr, Any)
 	}
 
 	dstPort := r.DstPorts.String()
@@ -293,7 +298,7 @@ func validAddrsFormat(addrs string) bool {
 	if addrs[0] == '!' {
 		return false
 	}
-	if addrs == "any" || addrs == "assigned" {
+	if addrs == Any || addrs == Assigned {
 		return true
 	}
 	_, _, err := net.ParseCIDR(addrs)
@@ -308,7 +313,7 @@ func parseFlowDescAddrs(addrs string) (string, error) {
 	if addrs == "" {
 		return "", flowDescErrorf("Empty string")
 	}
-	if addrs == "any" || addrs == "assigned" {
+	if addrs == Any || addrs == Assigned {
 		return addrs, nil
 	}
 	if addrs[0] == '!' {
