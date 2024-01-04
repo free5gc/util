@@ -14,8 +14,8 @@ func (m *SyncMap[K, V]) CompareAndDelete(key K, old V) (deleted bool) {
 	return m.m.CompareAndDelete(key, old)
 }
 
-func (m *SyncMap[K, V]) CompareAndSwap(key K, old V, new V) bool {
-	return m.m.CompareAndSwap(key, old, new)
+func (m *SyncMap[K, V]) CompareAndSwap(key K, old V, newValue V) bool {
+	return m.m.CompareAndSwap(key, old, newValue)
 }
 
 func (m *SyncMap[K, V]) Delete(key K) {

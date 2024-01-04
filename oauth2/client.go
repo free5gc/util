@@ -19,7 +19,8 @@ import (
 
 var tokenCache generics.SyncMap[string, *oauth2.Token]
 
-func GetOauth2RequestEditor(ctx context.Context, nfType nrf_management.NFType, nfId uuid.UUID, nrfUri string, scope string, targetNF nrf_management.NFType,
+func GetOauth2RequestEditor(ctx context.Context, nfType nrf_management.NFType, nfId uuid.UUID, nrfUri string,
+	scope string, targetNF nrf_management.NFType,
 ) (editor func(ctx context.Context, req *http.Request) error, err error) {
 	token, err := getOauth2Token(ctx, nfType, nfId, nrfUri, scope, targetNF)
 	if err != nil {
@@ -32,7 +33,9 @@ func GetOauth2RequestEditor(ctx context.Context, nfType nrf_management.NFType, n
 	}, nil
 }
 
-func getOauth2Token(ctx context.Context, nfType nrf_management.NFType, nfId uuid.UUID, nrfUri string, scope string, targetNF nrf_management.NFType) (token *oauth2.Token, err error) {
+func getOauth2Token(ctx context.Context, nfType nrf_management.NFType, nfId uuid.UUID, nrfUri string, scope string,
+	targetNF nrf_management.NFType,
+) (token *oauth2.Token, err error) {
 	if cacheEntry, exist := tokenCache.Load(scope); exist {
 		if cacheEntry.Expiry.IsZero() || cacheEntry.Expiry.After(time.Now()) {
 			return cacheEntry, nil
@@ -67,5 +70,6 @@ func getOauth2Token(ctx context.Context, nfType nrf_management.NFType, nfId uuid
 		return &newToken, nil
 	}
 
-	return nil, utils_error.ExtractAndWrapOpenAPIError("nrf_token.AccessTokenRequestWithFormdataBodyWithResponse", res, err)
+	return nil, utils_error.ExtractAndWrapOpenAPIError(
+		"nrf_token.AccessTokenRequestWithFormdataBodyWithResponse", res, err)
 }

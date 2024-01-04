@@ -3,8 +3,9 @@ package generics_test
 import (
 	"testing"
 
-	"github.com/free5gc/util/generics"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/free5gc/util/generics"
 )
 
 func TestSyncMap(t *testing.T) {
