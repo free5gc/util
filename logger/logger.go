@@ -143,6 +143,19 @@ func LogFileHook(log *logrus.Logger, logPath string) error {
 	return nil
 }
 
+func CreateFree5gcLogFile(file string) (string, error) {
+	// Because free5gc log file will be used by multiple NFs, it is not recommended to rename.
+	return createLogFile(file, false)
+}
+
+func CreateNfLogFile(file string, defaultName string) (string, error) {
+	path, err := createLogFile(file, false)
+	if err != nil {
+		return createLogFile(defaultName, false)
+	}
+	return path, err
+}
+
 /*
  * createLogFile
  * @param file, The full file path from arguments input by user.
