@@ -19,8 +19,9 @@ import (
 
 var tokenCache generics.SyncMap[string, *oauth2.Token]
 
-func GetOauth2RequestEditor(ctx context.Context, nfType nrf_management.NFType, nfId uuid.UUID, nrfUri string,
-	scope string, targetNF nrf_management.NFType,
+func GetOauth2RequestEditor(ctx context.Context,
+	nfType, targetNF nrf_management.NFType,
+	nfId uuid.UUID, nrfUri, scope string,
 ) (editor func(ctx context.Context, req *http.Request) error, err error) {
 	token, err := getOauth2Token(ctx, nfType, nfId, nrfUri, scope, targetNF)
 	if err != nil {
