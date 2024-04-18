@@ -2,7 +2,6 @@ package logger
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -213,7 +212,7 @@ func renameOldLogFile(file string) error {
 	sep := "."
 	fileDir, fileName := filepath.Split(file)
 
-	contents, err := ioutil.ReadDir(fileDir)
+	contents, err := os.ReadDir(fileDir)
 	if err != nil {
 		return errors.Errorf("Reads the directory(%s) error %+v\n", fileDir, err)
 	}

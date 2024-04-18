@@ -80,7 +80,7 @@ func TestUnique(t *testing.T) {
 		{11, 1567},
 	}
 
-	rand.Seed(time.Now().Unix())
+	rand.New(rand.NewSource(time.Now().Unix()))
 
 	for _, testCase := range testCases {
 		t.Run(fmt.Sprintf("minValue: %d, maxValue: %d", testCase.minValue, testCase.maxValue), func(t *testing.T) {
