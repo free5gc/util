@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	formatter "github.com/tim-ywliu/nested-logrus-formatter"
@@ -43,6 +44,10 @@ const (
 	FieldControlPlaneSEID   string = "CPSEID"
 	FieldUserPlaneSEID      string = "UPSEID"
 	FieldApplicationID      string = "APPID"
+)
+
+const (
+	JWT_USR_KEY = "email"
 )
 
 type FileHook struct {
@@ -87,7 +92,7 @@ func NewFileHook(file string, flag int, chmod os.FileMode) (*FileHook, error) {
 		ForceQuote:      true,
 		TimestampFormat: RFC3339Nano,
 	}
-	logFile, err := os.OpenFile(file, flag, chmod)
+	logFile, err := os.OpenFile(filepath.Clean(file), flag, chmod) // #nosec G304
 	if err != nil {
 		return nil, fmt.Errorf("unable to open file(%s): %+v\n", file, err)
 	}
@@ -164,7 +169,7 @@ func createLogFile(file string, rename bool) (string, error) {
 		}
 	}
 
-	if err := os.MkdirAll(dir, 0o775); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return "", errors.Errorf("Make dir(%s) failed: %+v\n", dir, err)
 	}
 
@@ -181,7 +186,7 @@ func createLogFile(file string, rename bool) (string, error) {
 		}
 
 		// Create log file or if it already exist, check if user can access it
-		f, err := os.OpenFile(file, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o666)
+		f, err := os.OpenFile(filepath.Clean(file), os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o600)
 		if err != nil {
 			// user cannot access it.
 			return "", errors.Errorf("Cannot Open [%s] error: %+v\n", file, err)
@@ -234,8 +239,9 @@ func renameOldLogFile(file string) error {
 }
 
 // NewGinWithLogrus - returns an Engine instance with the ginToLogrus and Recovery middleware already attached.
-func NewGinWithLogrus(log *logrus.Entry) *gin.Engine {
+func NewGinWithLogrus(log *logrus.Entry, middleware ...gin.HandlerFunc) *gin.Engine {
 	engine := gin.New()
+	engine.Use(middleware...) // middleware handles should be added before handles ginToLogrus and ginRecover
 	engine.Use(ginToLogrus(log), ginRecover(log))
 	return engine
 }
@@ -254,12 +260,21 @@ func ginToLogrus(log *logrus.Entry) gin.HandlerFunc {
 		statusCode := c.Writer.Status()
 		errorMessage := c.Errors.ByType(gin.ErrorTypePrivate).String()
 
+		var user string
+		claims, exist := c.Get("claims")
+		if exist {
+			jwtClaims, ok := claims.(jwt.MapClaims)
+			if ok {
+				user = jwtClaims[JWT_USR_KEY].(string)
+			}
+		}
+
 		if raw != "" {
 			path = path + "?" + raw
 		}
 
-		log.Infof("| %3d | %15s | %-7s | %s | %s",
-			statusCode, clientIP, method, path, errorMessage)
+		log.WithContext(c.Request.Context()).Infof("| %3d | %15s | %-7s | %s | %s | %s",
+			statusCode, clientIP, method, path, user, errorMessage)
 	}
 }
 
