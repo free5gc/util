@@ -2,9 +2,106 @@ package milenage
 
 import (
 	"crypto/aes"
+	"encoding/hex"
+	"fmt"
 	"reflect"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
+
+const (
+	K_LEN            = 16
+	OP_LEN           = 16
+	OPC_LEN          = 16
+	SQN_LEN          = 6
+	RAND_LEN         = 16
+	AMF_LEN          = 2
+	MAC_LEN          = 8
+	RES_LEN          = 8
+	SRES_LEN         = 4
+	KC_LEN           = 8
+	CK_LEN           = 16
+	IK_LEN           = 16
+	AK_LEN           = 6
+	AUTN_LEN         = 16
+	AUTS_LEN         = 14
+	CIPHER_BLOCK_LEN = 16
+)
+
+func GenerateOPc(k, op []uint8) (opc []uint8, err error) {
+	err = validateArg(k, "K", K_LEN)
+	if err != nil {
+		return nil, err
+	}
+	err = validateArg(op, "OP", OP_LEN)
+	if err != nil {
+		return nil, err
+	}
+
+	return generateOPc(k, op)
+}
+
+func GenerateOPcFromHex(k, op string) (opc string, err error) {
+	K, err := validateHexArg(k, "K", K_LEN)
+	if err != nil {
+		return "", err
+	}
+	OP, err := validateHexArg(op, "OP", OP_LEN)
+	if err != nil {
+		return "", err
+	}
+
+	OPc, err := generateOPc(K, OP)
+	return hex.EncodeToString(OPc), err
+}
+
+func generateOPc(k, op []uint8) ([]uint8, error) {
+	block, err := aes.NewCipher(k)
+	if err != nil {
+		return nil, err
+	}
+
+	opc := make([]byte, block.BlockSize())
+
+	block.Encrypt(opc, op)
+
+	for i := 0; i < OPC_LEN; i++ {
+		opc[i] ^= op[i]
+	}
+
+	return opc, nil
+}
+
+type ParameterLengthError struct {
+	Name     string
+	Exact    int
+	Expected int
+}
+
+func (e *ParameterLengthError) Error() string {
+	return fmt.Sprintf("parameter[%s] length should be %d byte(s), not %d byte(s)",
+		e.Name, e.Expected, e.Exact)
+}
+
+// validateArg that validate the args is a valid length
+func validateArg(arg []byte, argName string, expectedLen int) error {
+	if len(arg) != expectedLen {
+		return &ParameterLengthError{Name: argName, Exact: len(arg), Expected: expectedLen}
+	}
+	return nil
+}
+
+func validateHexArg(hexArg string, argName string, expectedLen int) ([]byte, error) {
+	arg, err := hex.DecodeString(hexArg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "decode arg[%s]=[%s] fail", argName, hexArg)
+	}
+	if len(arg) != expectedLen {
+		return nil, &ParameterLengthError{Name: argName, Exact: len(arg), Expected: expectedLen}
+	}
+	return arg, nil
+}
 
 /**
  * milenage_f1 - Milenage f1 and f1* algorithms
