@@ -21,13 +21,13 @@ func TestSafeChannel(t *testing.T) {
 				// Case: send after sCh closed
 				time.Sleep(1 * time.Second)
 
-				require.Equal(t, sCh.closed, true)
+				require.Equal(t, sCh.IsClosed(), true)
 				sCh.Send(1) // No panic
-				require.Equal(t, sCh.closed, true)
+				require.Equal(t, sCh.IsClosed(), true)
 			} else {
 				// Case: send success
 				sCh.Send(1)
-				require.Equal(t, sCh.closed, false)
+				require.Equal(t, sCh.IsClosed(), false)
 			}
 			wg.Done()
 		}(i)
@@ -36,7 +36,7 @@ func TestSafeChannel(t *testing.T) {
 	// One receiver
 	<-sCh.GetRcvChan()
 	sCh.Close()
-	require.Equal(t, sCh.closed, true)
+	require.Equal(t, sCh.IsClosed(), true)
 
 	wg.Wait()
 }

@@ -36,3 +36,9 @@ func (c *SafeCh[T]) Close() {
 		c.closed = true
 	}
 }
+
+func (c *SafeCh[T]) IsClosed() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.closed
+}
