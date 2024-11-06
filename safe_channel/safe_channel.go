@@ -3,7 +3,7 @@ package safe_channel
 import "sync"
 
 type SafeCh[T any] struct {
-	mu     sync.Mutex
+	mu     sync.RWMutex
 	closed bool
 	ch     chan T
 }
@@ -15,8 +15,8 @@ func NewSafeCh[T any](size int) *SafeCh[T] {
 }
 
 func (c *SafeCh[T]) Send(e T) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	if !c.closed {
 		c.ch <- e
@@ -38,7 +38,7 @@ func (c *SafeCh[T]) Close() {
 }
 
 func (c *SafeCh[T]) IsClosed() bool {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.closed
 }
