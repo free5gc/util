@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	nrf_management "github.com/ShouheiNishi/openapi5g/nrf/management"
+	"github.com/ShouheiNishi/openapi5g/models"
 	nrf_token "github.com/ShouheiNishi/openapi5g/nrf/token"
 	utils_error "github.com/ShouheiNishi/openapi5g/utils/error"
 	"github.com/google/uuid"
@@ -20,7 +20,7 @@ import (
 var tokenCache generics.SyncMap[string, *oauth2.Token]
 
 func GetOauth2RequestEditor(ctx context.Context,
-	nfType, targetNF nrf_management.NFType,
+	nfType, targetNF models.NFType,
 	nfId uuid.UUID, nrfUri, scope string,
 ) (editor func(ctx context.Context, req *http.Request) error, err error) {
 	token, err := getOauth2Token(ctx, nfType, nfId, nrfUri, scope, targetNF)
@@ -34,8 +34,8 @@ func GetOauth2RequestEditor(ctx context.Context,
 	}, nil
 }
 
-func getOauth2Token(ctx context.Context, nfType nrf_management.NFType, nfId uuid.UUID, nrfUri string, scope string,
-	targetNF nrf_management.NFType,
+func getOauth2Token(ctx context.Context, nfType models.NFType, nfId uuid.UUID, nrfUri string, scope string,
+	targetNF models.NFType,
 ) (token *oauth2.Token, err error) {
 	if cacheEntry, exist := tokenCache.Load(scope); exist {
 		if cacheEntry.Expiry.IsZero() || cacheEntry.Expiry.After(time.Now()) {
@@ -50,8 +50,8 @@ func getOauth2Token(ctx context.Context, nfType nrf_management.NFType, nfId uuid
 
 	res, err := client.AccessTokenRequestWithFormdataBodyWithResponse(ctx, &nrf_token.AccessTokenRequestParams{
 		AcceptEncoding: lo.ToPtr("application/json"),
-	}, nrf_token.AccessTokenReq{
-		GrantType:    nrf_token.ClientCredentials,
+	}, models.AccessTokenReq{
+		GrantType:    models.ClientCredentials,
 		NfInstanceId: nfId,
 		Scope:        scope,
 		NfType:       &nfType,
