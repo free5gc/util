@@ -8,7 +8,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.3
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/stretchr/testify v1.9.0
 	github.com/tim-ywliu/nested-logrus-formatter v1.3.2
