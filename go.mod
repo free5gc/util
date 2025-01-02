@@ -13,7 +13,7 @@ require (
 	github.com/stretchr/testify v1.8.3
 	github.com/tim-ywliu/nested-logrus-formatter v1.3.2
 	go.mongodb.org/mongo-driver v1.17.1
-	golang.org/x/net v0.23.0
+	golang.org/x/net v0.33.0
 )
 
 require (
