@@ -7,9 +7,9 @@ import (
 	"time"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 var (
@@ -27,9 +27,7 @@ func SetMongoDB(setdbName string, url string) error {
 	if Client != nil {
 		return nil
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
+	client, err := mongo.Connect(options.Client().ApplyURI(url))
 	if err != nil {
 		return fmt.Errorf("SetMongoDB err: %+v", err)
 	}
@@ -57,8 +55,7 @@ func findOneAndDecode(collection *mongo.Collection, filter bson.M, argOpt ...int
 	var err error
 	collation := getCollation(argOpt...)
 	if collation != nil {
-		opts := new(options.FindOneOptions)
-		opts.SetCollation(collation)
+		opts := options.FindOne().SetCollation(collation)
 		err = collection.FindOne(context.TODO(), filter, opts).Decode(&result)
 	} else {
 		err = collection.FindOne(context.TODO(), filter).Decode(&result)
@@ -122,8 +119,7 @@ func RestfulAPIGetMany(collName string, filter bson.M, argOpt ...interface{}) ([
 	var err error
 	collation := getCollation(argOpt...)
 	if collation != nil {
-		opts := new(options.FindOptions)
-		opts.SetCollation(collation)
+		opts := options.Find().SetCollation(collation)
 		cur, err = collection.Find(ctx, filter, opts)
 	} else {
 		cur, err = collection.Find(ctx, filter)
@@ -167,11 +163,10 @@ func RestfulAPIPutOne(collName string, filter bson.M, putData map[string]interfa
 	}
 
 	if existed {
-		var opts *options.UpdateOptions
+		var opts *options.UpdateOneOptionsBuilder
 		collation := getCollation(argOpt...)
 		if collation != nil {
-			opts = new(options.UpdateOptions)
-			opts.SetCollation(collation)
+			opts = options.UpdateOne().SetCollation(collation)
 		}
 		if _, err := collection.UpdateOne(context.TODO(), filter, bson.M{"$set": putData}, opts); err != nil {
 			return false, fmt.Errorf("RestfulAPIPutOne UpdateOne err: %+v", err)
@@ -193,8 +188,7 @@ func RestfulAPIPullOne(collName string, filter bson.M,
 	var err error
 	collation := getCollation(argOpt...)
 	if collation != nil {
-		opts := new(options.UpdateOptions)
-		opts.SetCollation(collation)
+		opts := options.UpdateOne().SetCollation(collation)
 		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$pull": putData}, opts)
 	} else {
 		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$pull": putData})
@@ -259,8 +253,7 @@ func RestfulAPIDeleteOne(collName string, filter bson.M, argOpt ...interface{}) 
 	var err error
 	collation := getCollation(argOpt...)
 	if collation != nil {
-		opts := new(options.DeleteOptions)
-		opts.SetCollation(collation)
+		opts := options.DeleteOne().SetCollation(collation)
 		_, err = collection.DeleteOne(context.TODO(), filter, opts)
 	} else {
 		_, err = collection.DeleteOne(context.TODO(), filter)
@@ -278,8 +271,7 @@ func RestfulAPIDeleteMany(collName string, filter bson.M, argOpt ...interface{})
 	var err error
 	collation := getCollation(argOpt...)
 	if collation != nil {
-		opts := new(options.DeleteOptions)
-		opts.SetCollation(collation)
+		opts := options.DeleteMany().SetCollation(collation)
 		_, err = collection.DeleteMany(context.TODO(), filter, opts)
 	} else {
 		_, err = collection.DeleteMany(context.TODO(), filter)
@@ -323,8 +315,7 @@ func RestfulAPIMergePatch(
 
 	collation := getCollation(argOpt...)
 	if collation != nil {
-		opts := new(options.UpdateOptions)
-		opts.SetCollation(collation)
+		opts := options.UpdateOne().SetCollation(collation)
 		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData}, opts)
 	} else {
 		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData})
@@ -366,8 +357,7 @@ func RestfulAPIJSONPatch(collName string, filter bson.M, patchJSON []byte, argOp
 
 	collation := getCollation(argOpt...)
 	if collation != nil {
-		opts := new(options.UpdateOptions)
-		opts.SetCollation(collation)
+		opts := options.UpdateOne().SetCollation(collation)
 		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData}, opts)
 	} else {
 		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData})
@@ -413,8 +403,7 @@ func RestfulAPIJSONPatchExtend(
 
 	collation := getCollation(argOpt...)
 	if collation != nil {
-		opts := new(options.UpdateOptions)
-		opts.SetCollation(collation)
+		opts := options.UpdateOne().SetCollation(collation)
 		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData}, opts)
 	} else {
 		_, err = collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData})
