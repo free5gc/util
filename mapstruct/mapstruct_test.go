@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/smartystreets/goconvey/convey"
 )
 
 type TestProfile struct {
@@ -58,22 +58,22 @@ func TestDecode(t *testing.T) {
 		},
 	}
 
-	Convey("Decode Test", t, func() {
+	convey.Convey("Decode Test", t, func() {
 		for _, tc := range testCases {
-			Convey(tc.description, func() {
+			convey.Convey(tc.description, func() {
 				var target TestProfile
 				err := Decode(tc.source, &target)
 				if tc.decodeError {
-					Convey("Decode should fail", func() {
-						So(err, ShouldNotBeNil)
+					convey.Convey("Decode should fail", func() {
+						convey.So(err, convey.ShouldNotBeNil)
 					})
 				} else {
-					Convey("Decode should succeed", func() {
-						So(err, ShouldBeNil)
+					convey.Convey("Decode should succeed", func() {
+						convey.So(err, convey.ShouldBeNil)
 					})
 				}
-				Convey(tc.resultStr, func() {
-					So(true, ShouldEqual, reflect.DeepEqual(target.RecoveryTime, tc.expectedTarget.RecoveryTime))
+				convey.Convey(tc.resultStr, func() {
+					convey.So(true, convey.ShouldEqual, reflect.DeepEqual(target.RecoveryTime, tc.expectedTarget.RecoveryTime))
 				})
 			})
 		}
