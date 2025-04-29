@@ -298,7 +298,7 @@ issues:
   # Show only new issues created in git patch with set file path.
   #new-from-patch: path/to/patch/file
   exclude-dirs-use-default: true
-  uniq-by-line:
+  uniq-by-line: true
 severity:
   # Default value is empty string.
   # Set the default severity for issues. If severity rules are defined and the issues
