@@ -61,13 +61,13 @@ type FileHook struct {
 func (h *FileHook) Fire(entry *logrus.Entry) error {
 	plainformat, err := h.formatter.Format(entry)
 	if err != nil {
-		return fmt.Errorf("FileHook formatter error: %+v\n", err)
+		return fmt.Errorf("FileHook formatter error: %+v", err)
 	}
 
 	line := string(plainformat)
 	_, err = h.file.WriteString(line)
 	if err != nil {
-		return fmt.Errorf("unable to write file on filehook(%s): %+v\n", line, err)
+		return fmt.Errorf("unable to write file on filehook(%s): %+v", line, err)
 	}
 
 	return nil
@@ -94,7 +94,7 @@ func NewFileHook(file string, flag int, chmod os.FileMode) (*FileHook, error) {
 	}
 	logFile, err := os.OpenFile(filepath.Clean(file), flag, chmod) // #nosec G304
 	if err != nil {
-		return nil, fmt.Errorf("unable to open file(%s): %+v\n", file, err)
+		return nil, fmt.Errorf("unable to open file(%s): %+v", file, err)
 	}
 
 	return &FileHook{logFile, flag, chmod, plainFormatter}, nil

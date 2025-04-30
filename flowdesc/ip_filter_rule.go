@@ -278,7 +278,7 @@ func Decode(s string) (*IPFilterRule, error) {
 	ptr++
 
 	// if end of parts
-	if !(len(parts) > ptr) {
+	if len(parts) <= ptr {
 		return r, nil
 	}
 
