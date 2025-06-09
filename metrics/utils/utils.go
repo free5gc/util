@@ -17,6 +17,10 @@ const (
 
 type MetricTypeEnabled string
 
+const (
+	SBI MetricTypeEnabled = "sbi"
+)
+
 var businessMetricsEnabled bool
 
 func IsBusinessMetricsEnabled() bool {
