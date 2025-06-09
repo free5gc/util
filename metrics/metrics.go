@@ -1,12 +1,13 @@
-// Package metricsInfo sets and initializes Prometheus metricsInfo.
+// Package metrics sets and initializes Prometheus metrics.
 package metrics
 
 import (
+	"github.com/free5gc/util/metrics/sbi"
 	"github.com/free5gc/util/metrics/utils"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// Init initializes all Prometheus metricsInfo
+// Init initializes all Prometheus metrics
 func Init(initMetrics InitMetrics) *prometheus.Registry {
 	reg := prometheus.NewRegistry()
 
@@ -14,9 +15,9 @@ func Init(initMetrics InitMetrics) *prometheus.Registry {
 		NF_TYPE_LABEL: initMetrics.GetNfName(),
 	}
 
-	prometheus.WrapRegistererWith(globalLabels, reg)
-	// Uncomment to remove the basic go prometheus customCollectors.
-	// wrappedReg.Unregister(customCollectors.NewProcessCollector(customCollectors.ProcessCollectorOpts{}))
+	wrappedReg := prometheus.WrapRegistererWith(globalLabels, reg)
+	// Uncomment to remove the basic go prometheus collectors.
+	// wrappedReg.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 
 	if len(initMetrics.GetCustomCollectors()) > 0 {
 		utils.EnableBusinessMetrics()
@@ -25,7 +26,21 @@ func Init(initMetrics InitMetrics) *prometheus.Registry {
 		}
 	}
 
+	if initMetrics.GetMetricsEnabled()[utils.SBI] {
+		addSBIToRegistry(initMetrics.GetMetricsInfo().Namespace, wrappedReg)
+	}
+
 	return reg
+}
+
+func addSBIToRegistry(namespace string, reg prometheus.Registerer) {
+	var sbiMetrics []prometheus.Collector
+
+	sbiMetrics = append(sbiMetrics, sbi.GetSbiOutboundMetrics(namespace)...)
+	sbiMetrics = append(sbiMetrics, sbi.GetSbiInboundMetrics(namespace)...)
+
+	initMetric(sbiMetrics, reg)
+	sbi.EnableSbiMetrics()
 }
 
 func initMetric(metrics []prometheus.Collector, reg prometheus.Registerer) {
