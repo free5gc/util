@@ -18,8 +18,9 @@ const (
 type MetricTypeEnabled string
 
 const (
-	SBI MetricTypeEnabled = "sbi"
-	NAS MetricTypeEnabled = "nas"
+	SBI  MetricTypeEnabled = "sbi"
+	NAS  MetricTypeEnabled = "nas"
+	NGAP MetricTypeEnabled = "ngap"
 )
 
 var businessMetricsEnabled bool
