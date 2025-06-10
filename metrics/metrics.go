@@ -3,6 +3,7 @@ package metrics
 
 import (
 	"github.com/free5gc/util/metrics/nas"
+	"github.com/free5gc/util/metrics/ngap"
 	"github.com/free5gc/util/metrics/sbi"
 	"github.com/free5gc/util/metrics/utils"
 	"github.com/prometheus/client_golang/prometheus"
@@ -35,6 +36,10 @@ func Init(initMetrics InitMetrics) *prometheus.Registry {
 		addNASToRegistry(initMetrics.GetMetricsInfo().Namespace, wrappedReg)
 	}
 
+	if initMetrics.GetMetricsEnabled()[utils.NGAP] {
+		addNGAPToRegistry(initMetrics.GetMetricsInfo().Namespace, wrappedReg)
+	}
+
 	return reg
 }
 
@@ -55,6 +60,15 @@ func addNASToRegistry(namespace string, reg prometheus.Registerer) {
 
 	initMetric(nasMetrics, reg)
 	nas.EnableNasMetrics()
+}
+
+func addNGAPToRegistry(namespace string, reg prometheus.Registerer) {
+	var ngapMetrics []prometheus.Collector
+
+	ngapMetrics = append(ngapMetrics, ngap.GetNgapHandlerMetrics(namespace)...)
+
+	initMetric(ngapMetrics, reg)
+	ngap.EnableNgapMetrics()
 }
 
 func initMetric(metrics []prometheus.Collector, reg prometheus.Registerer) {
