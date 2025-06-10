@@ -4,6 +4,7 @@ go 1.24
 
 require (
 	github.com/evanphx/json-patch/v5 v5.9.0
+	github.com/free5gc/nas v1.1.5
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/mitchellh/mapstructure v1.5.0

@@ -1,9 +1,10 @@
-// Package metricsInfo sets and initializes Prometheus metricsInfo.
+// Package metrics sets and initializes Prometheus metrics.
 package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
 
+	"github.com/free5gc/util/metrics/nas"
 	"github.com/free5gc/util/metrics/sbi"
 	"github.com/free5gc/util/metrics/utils"
 )
@@ -31,6 +32,10 @@ func Init(initMetrics InitMetrics) *prometheus.Registry {
 		addSBIToRegistry(initMetrics.GetMetricsInfo().Namespace, wrappedReg)
 	}
 
+	if initMetrics.GetMetricsEnabled()[utils.NAS] {
+		addNASToRegistry(initMetrics.GetMetricsInfo().Namespace, wrappedReg)
+	}
+
 	return reg
 }
 
@@ -42,6 +47,15 @@ func addSBIToRegistry(namespace string, reg prometheus.Registerer) {
 
 	initMetric(sbiMetrics, reg)
 	sbi.EnableSbiMetrics()
+}
+
+func addNASToRegistry(namespace string, reg prometheus.Registerer) {
+	var nasMetrics []prometheus.Collector
+
+	nasMetrics = append(nasMetrics, nas.GetNasHandlerMetrics(namespace)...)
+
+	initMetric(nasMetrics, reg)
+	nas.EnableNasMetrics()
 }
 
 func initMetric(metrics []prometheus.Collector, reg prometheus.Registerer) {
