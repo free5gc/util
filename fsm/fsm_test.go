@@ -55,6 +55,7 @@ func TestFSM(t *testing.T) {
 				fmt.Printf("event [%+v] at state [%+v]\n", event, state.Current())
 			},
 		},
+		nil,
 	)
 
 	s := NewState(Closed)
@@ -90,6 +91,7 @@ func TestFSMInitFail(t *testing.T) {
 				fmt.Printf("event [%+v] at state [%+v]\n", event, state.Current())
 			},
 		},
+		nil,
 	)
 
 	assert.EqualError(t, err, fmt.Sprintf("Duplicate transition: %+v", duplicateTrans))
@@ -114,6 +116,7 @@ func TestFSMInitFail(t *testing.T) {
 				fmt.Printf("event [%+v] at state [%+v]\n", event, state.Current())
 			},
 		},
+		nil,
 	)
 
 	assert.EqualError(t, err, fmt.Sprintf("Unknown state: %+v", fakeState))
