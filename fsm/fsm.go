@@ -45,6 +45,12 @@ const (
 	ExitEvent  EventType = "Exit event"
 )
 
+type (
+	metricFunc func(string, string)
+)
+
+var stateTransitionMetricFunc metricFunc
+
 type FSM struct {
 	// transitions stores one transition for each event
 	transitions map[eventKey]Transition
@@ -53,7 +59,11 @@ type FSM struct {
 }
 
 // NewFSM create a new FSM object then registers transitions and callbacks to it
-func NewFSM(transitions Transitions, callbacks Callbacks) (*FSM, error) {
+func NewFSM(
+	transitions Transitions,
+	callbacks Callbacks,
+	callbackMetricFunc metricFunc,
+) (*FSM, error) {
 	fsm := &FSM{
 		transitions: make(map[eventKey]Transition),
 		callbacks:   make(map[StateType]Callback),
@@ -82,6 +92,11 @@ func NewFSM(transitions Transitions, callbacks Callbacks) (*FSM, error) {
 			fsm.callbacks[state] = callback
 		}
 	}
+
+	if callbackMetricFunc != nil {
+		stateTransitionMetricFunc = callbackMetricFunc
+	}
+
 	return fsm, nil
 }
 
@@ -110,6 +125,9 @@ func (fsm *FSM) SendEvent(state *State, event EventType, args ArgsType, log *log
 
 		// exit callback
 		if trans.From != trans.To {
+			if stateTransitionMetricFunc != nil {
+				stateTransitionMetricFunc(string(trans.From), string(trans.To))
+			}
 			fsm.callbacks[trans.From](state, ExitEvent, args)
 		}
 
