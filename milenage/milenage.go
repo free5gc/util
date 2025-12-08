@@ -230,6 +230,24 @@ func f2345(opc, k, _rand []uint8) (res, ck, ik, ak, akstar []byte, err error) {
 	return res, ck, ik, ak, akstar, nil
 }
 
+// F2345 is the public wrapper for Milenage f2, f3, f4, f5, f5* algorithms
+func F2345(opc, k, rand []byte) (res, ck, ik, ak, akstar []byte, err error) {
+	err = validateArg(opc, "OPc", OPC_LEN)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+	err = validateArg(k, "K", K_LEN)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+	err = validateArg(rand, "RAND", RAND_LEN)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	return f2345(opc, k, rand)
+}
+
 /**
  * gsm_milenage - Generate GSM-Milenage (3GPP TS 55.205) authentication triplet
  * @opc: OPc = 128-bit operator variant algorithm configuration field (encr.)
