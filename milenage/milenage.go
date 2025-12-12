@@ -100,6 +100,30 @@ func f1(opc, k, _rand, sqn, amf []byte) (mac_a, mac_s []byte, err error) {
 
 	return mac_a, mac_s, nil
 }
+func F1(opc, k, rand, sqn, amf []byte) (mac_a, mac_s []byte, err error) {
+    err = validateArg(opc, "OPc", OPC_LEN)
+    if err != nil {
+        return nil, nil, err
+    }
+    err = validateArg(k, "K", K_LEN)
+    if err != nil {
+        return nil, nil, err
+    }
+    err = validateArg(rand, "RAND", RAND_LEN)
+    if err != nil {
+        return nil, nil, err
+    }
+    err = validateArg(sqn, "SQN", SQN_LEN)
+    if err != nil {
+        return nil, nil, err
+    }
+    err = validateArg(amf, "AMF", AMF_LEN)
+    if err != nil {
+        return nil, nil, err
+    }
+
+    return f1(opc, k, rand, sqn, amf)
+}
 
 /* AUTS = (SQNms ^ AK-S) || MAC-S */
 func CutAUTS(auts []byte) ([]byte, []byte) {
