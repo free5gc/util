@@ -55,7 +55,7 @@ func TestVersion(t *testing.T) {
 		}
 		BUILD_TIME = strings.TrimSuffix(string(stdout), "\n")
 		stdout, err = exec.CommandContext(context.Background(), "bash", "-c",
-			"git diff-index --quiet HEAD -- || echo \"-dirty\"").Output()
+			"git log --pretty=\"%H\" -1 | cut -c1-8").Output()
 		if err != nil {
 			t.Errorf("err: %+v\n", err)
 		}
