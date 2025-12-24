@@ -1,11 +1,11 @@
 module github.com/free5gc/util
 
-go 1.24.0
+go 1.25.5
 
 require (
 	github.com/evanphx/json-patch/v5 v5.9.0
-	github.com/free5gc/nas v1.1.5
-	github.com/free5gc/ngap v1.0.10
+	github.com/free5gc/nas v1.2.2
+	github.com/free5gc/ngap v1.1.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/mitchellh/mapstructure v1.5.0
@@ -28,7 +28,7 @@ require (
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/free5gc/aper v1.0.6-0.20250102035630-3ddc831eed6a // indirect
+	github.com/free5gc/aper v1.1.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

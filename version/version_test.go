@@ -1,6 +1,7 @@
 package version
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"runtime"
@@ -48,17 +49,18 @@ func TestVersion(t *testing.T) {
 		var stdout []byte
 		var err error
 		VERSION = "Release-v3.100.200" // VERSION using free5gc's version (git tag), we static set it here
-		stdout, err = exec.Command("bash", "-c", "date -u +\"%Y-%m-%dT%H:%M:%SZ\"").Output()
+		stdout, err = exec.CommandContext(context.Background(), "bash", "-c", "date -u +\"%Y-%m-%dT%H:%M:%SZ\"").Output()
 		if err != nil {
 			t.Errorf("err: %+v\n", err)
 		}
 		BUILD_TIME = strings.TrimSuffix(string(stdout), "\n")
-		stdout, err = exec.Command("bash", "-c", "git log --pretty=\"%H\" -1 | cut -c1-8").Output()
+		stdout, err = exec.CommandContext(context.Background(), "bash", "-c",
+			"git log --pretty=\"%H\" -1 | cut -c1-8").Output()
 		if err != nil {
 			t.Errorf("err: %+v\n", err)
 		}
 		COMMIT_HASH = strings.TrimSuffix(string(stdout), "\n")
-		stdout, err = exec.Command("bash", "-c",
+		stdout, err = exec.CommandContext(context.Background(), "bash", "-c",
 			"git log --pretty=\"%ai\" -1 | awk '{time=$1\"T\"$2\"Z\"; print time}'").Output()
 		if err != nil {
 			t.Errorf("err: %+v\n", err)
