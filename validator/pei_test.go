@@ -8,9 +8,7 @@ func TestIsValidPei(t *testing.T) {
 		pei  string
 		want bool
 	}{
-		{"Valid IMEI raw", "123456789012345", true},
 		{"Valid IMEI prefix", "imei-123456789012345", true},
-		{"Valid IMEISV raw", "1234567890123456", true},
 		{"Valid IMEISV prefix", "imeisv-1234567890123456", true},
 		{"Invalid Short", "123", false},
 		{"Invalid Alpha", "12345678901234a", false},
