@@ -28,6 +28,7 @@ func IsValidSupi(supi string) bool {
 	}
 
 	if strings.HasPrefix(supi, "nai-") {
+		// NAI should not contain null byte
 		if strings.Contains(supi, "\x00") {
 			return false
 		}
