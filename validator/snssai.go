@@ -30,6 +30,9 @@ func isValidSst(sst string) bool {
 
 func isValidSd(sd string) bool {
 	// SD is 6 hex digits
-	match, _ := regexp.MatchString(`^[0-9a-fA-F]{6}$`, sd)
+	match, err := regexp.MatchString(`^[0-9a-fA-F]{6}$`, sd)
+	if err != nil {
+		return false
+	}
 	return match
 }

@@ -7,8 +7,8 @@ import (
 
 // PEI types
 const (
-	PeiTypeImei   = "IMEI"
-	PeiTypeImeisv = "IMEISV"
+	PeiTypeImei    = "IMEI"
+	PeiTypeImeisv  = "IMEISV"
 	PeiTypeUnknown = "UNKNOWN"
 )
 
@@ -30,12 +30,18 @@ func IsValidPei(pei string) bool {
 
 // IsValidImei checks if the string is a valid IMEI (15 digits)
 func IsValidImei(imei string) bool {
-	match, _ := regexp.MatchString(`^\d{15}$`, imei)
+	match, err := regexp.MatchString(`^\d{15}$`, imei)
+	if err != nil {
+		return false
+	}
 	return match
 }
 
 // IsValidImeisv checks if the string is a valid IMEISV (16 digits)
 func IsValidImeisv(imeisv string) bool {
-	match, _ := regexp.MatchString(`^\d{16}$`, imeisv)
+	match, err := regexp.MatchString(`^\d{16}$`, imeisv)
+	if err != nil {
+		return false
+	}
 	return match
 }
