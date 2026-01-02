@@ -782,7 +782,7 @@ func TestValidateAUTS(t *testing.T) {
 			RAND, err := hex.DecodeString(tc.RAND)
 			require.NoError(t, err, "decode RAND fail")
 
-			SQNms, err := ValidateAUTS(OPc, K, RAND, AUTS)
+			SQNms, _, err := ValidateAUTS(OPc, K, RAND, AUTS)
 			if tc.ExpectedSQNms != "" {
 				require.NoError(t, err, "validate AUTS fail")
 				require.Equal(t, tc.ExpectedSQNms, hex.EncodeToString(SQNms), "SQNms not eqaul")
