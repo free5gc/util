@@ -8,12 +8,13 @@ func TestIsValidSuci(t *testing.T) {
 		suci string
 		want bool
 	}{
-		{"Valid SUCI", "suci-208-93-0-0-0-0000000003", true},
-		{"Valid SUCI with hex", "suci-208-93-A-1-FF-AABBCC", true},
+		{"Valid SUCI", "suci-0-208-93-0-0-0-0000000003", true},
+		{"Valid SUCI with hex", "suci-0-208-93-A-1-FF-AABBCC", true},
 		{"Valid SUCI NAI", "nai-user@example.com", true},
 		{"Invalid SUCI prefix", "imsi-208930000000003", false},
-		{"Invalid SUCI format", "suci-208-93-0-0-0", false},
-		{"Invalid SUCI non-hex output", "suci-208-93-0-0-0-ZZZ", false},
+		{"Invalid SUCI format", "suci-0-208-93-0-0-0", false},
+		{"Invalid SUCI non-hex output", "suci-0-208-93-0-0-0-ZZZ", false},
+		{"Invalid SUPI Type", "suci-8-208-93-0-0-0-0000000003", false},
 		{"Invalid NAI", "nai-userexample.com", false},
 	}
 
