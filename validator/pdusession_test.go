@@ -74,3 +74,53 @@ func TestIsValidPduSessionID(t *testing.T) {
 		runTests(t, tests)
 	})
 }
+
+func TestIsPduSessionIdInPsiRange(t *testing.T) {
+	type args struct {
+		pduSessionID int32
+	}
+	type testCase struct {
+		name string
+		args args
+		want bool
+	}
+
+	runTests := func(t *testing.T, tests []testCase) {
+		t.Helper()
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				if got := IsPduSessionIdInPsiRange(tt.args.pduSessionID); got != tt.want {
+					t.Errorf("IsPduSessionIdInPsiRange() = %v, want %v (input: %d)", got, tt.want, tt.args.pduSessionID)
+				}
+			})
+		}
+	}
+
+	// normal
+	t.Run("Check_Valid_PSI_Range", func(t *testing.T) {
+		tests := []testCase{
+			{"PSI Min Value (0)", args{0}, true},
+			{"PSI Max Value (15)", args{15}, true},
+			{"Valid Mid Value (7)", args{7}, true},
+		}
+		runTests(t, tests)
+	})
+
+	// out of range
+	t.Run("Check_Out_Of_PSI_Range", func(t *testing.T) {
+		tests := []testCase{
+			{"Invalid Boundary (16)", args{16}, false},
+			{"Poison Packet ID (20)", args{20}, false},
+			{"Valid ID but Illegal PSI (255)", args{255}, false},
+		}
+		runTests(t, tests)
+	})
+
+	// negative
+	t.Run("Check_Negative_Values", func(t *testing.T) {
+		tests := []testCase{
+			{"Negative ID (-1)", args{-1}, false},
+		}
+		runTests(t, tests)
+	})
+}

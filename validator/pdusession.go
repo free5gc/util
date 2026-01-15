@@ -7,3 +7,8 @@ func IsValidPduSessionID(pduSessionID string) bool {
 	pduSessionIDInt, err := strconv.Atoi(pduSessionID)
 	return err == nil && pduSessionIDInt >= 0 && pduSessionIDInt < 256
 }
+
+// TS 24.501 9.11.3.57 (PSI 0-15)
+func IsPduSessionIdInPsiRange(id int32) bool {
+	return id >= 0 && id < 16
+}
