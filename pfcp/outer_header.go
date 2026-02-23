@@ -99,7 +99,6 @@ func ParseOuterHeaderCreation(payload []byte) (*OuterHeaderCreationFields, error
 			return nil, fmt.Errorf("OuterHeaderCreation: insufficient bytes for S-TAG at offset %d", offset)
 		}
 		f.STag = uint32(payload[offset])<<16 | uint32(payload[offset+1])<<8 | uint32(payload[offset+2])
-		offset += 3
 	}
 
 	return f, nil
