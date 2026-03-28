@@ -2,9 +2,11 @@ package validator
 
 import "regexp"
 
-var plmnIdRegex = regexp.MustCompile(`^[0-9]{5,6}$`)
-var mccRegex = regexp.MustCompile(`^[0-9]{3}$`)
-var mncRegex = regexp.MustCompile(`^[0-9]{2,3}$`)
+var (
+	plmnIdRegex = regexp.MustCompile(`^[0-9]{5,6}$`)
+	mccRegex    = regexp.MustCompile(`^[0-9]{3}$`)
+	mncRegex    = regexp.MustCompile(`^[0-9]{2,3}$`)
+)
 
 // IsValidPlmnId checks if the string is a valid PLMN ID (MCC+MNC)
 // Format: 5 or 6 digits
