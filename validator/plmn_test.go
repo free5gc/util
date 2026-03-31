@@ -23,3 +23,27 @@ func TestIsValidPlmnId(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidPlmnIdParts(t *testing.T) {
+	tests := []struct {
+		name string
+		mcc  string
+		mnc  string
+		want bool
+	}{
+		{"Valid 3+2", "208", "93", true},
+		{"Valid 3+3", "208", "930", true},
+		{"Invalid short MCC", "20", "893", false},
+		{"Invalid short MNC", "208", "9", false},
+		{"Invalid alpha MCC", "2a8", "93", false},
+		{"Invalid alpha MNC", "208", "9a", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsValidPlmnIdParts(tt.mcc, tt.mnc); got != tt.want {
+				t.Errorf("IsValidPlmnIdParts(%v, %v) = %v, want %v", tt.mcc, tt.mnc, got, tt.want)
+			}
+		})
+	}
+}
