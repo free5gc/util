@@ -106,6 +106,11 @@ const (
 	TARGET_RAN_NIL_ERR                          = "targetRan is nil"
 	UE_CTX_NIL                                  = "Ue context is nil"
 	UNKNOWN_NGAP_TYPE_CAUSE_ERR                 = "unknown ngapType.Cause"
+	// UNKNOWN_CAUSE_ERR is reported for a cause value outside of the maps in
+	// error_message.go, so that an unexpected value cannot inflate the
+	// cardinality of the cause label.
+	UNKNOWN_CAUSE_ERR             = "unknown cause"
+	CHOICE_EXTENSIONS_UNKNOWN_ERR = "ChoiceExtensions : Unknown error"
 )
 
 var ngapMetricsEnabled bool
