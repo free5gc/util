@@ -3,7 +3,7 @@ package ngap
 import (
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/free5gc/ngap/ngapType"
+	ngapie "github.com/free5gc/ngap/ie"
 	utils "github.com/free5gc/util/metrics/utils"
 )
 
@@ -42,11 +42,11 @@ func GetNgapHandlerMetrics(namespace string) []prometheus.Collector {
 	return collectors
 }
 
-func IncrMetricsRcvMsg(msgType string, metricStatusSuccess *bool, syntaxCause *ngapType.Cause) {
+func IncrMetricsRcvMsg(msgType string, metricStatusSuccess *bool, syntaxCause *ngapie.Cause) {
 	if IsNgapMetricsEnabled() {
 		msgCause := ""
 
-		if syntaxCause != nil && syntaxCause.Present != 0 {
+		if syntaxCause != nil && syntaxCause.Choice != nil {
 			msgCause = GetCauseErrorStr(syntaxCause)
 		}
 
@@ -58,7 +58,7 @@ func IncrMetricsRcvMsg(msgType string, metricStatusSuccess *bool, syntaxCause *n
 	}
 }
 
-func IncrMetricsSentMsg(msgType string, metricStatusSuccess *bool, syntaxCause ngapType.Cause, otherCause *string) {
+func IncrMetricsSentMsg(msgType string, metricStatusSuccess *bool, syntaxCause ngapie.Cause, otherCause *string) {
 	if IsNgapMetricsEnabled() {
 		msgCause := ""
 		causeErrStr := GetCauseErrorStr(&syntaxCause)

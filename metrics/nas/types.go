@@ -17,8 +17,14 @@ const (
 	CAUSE_LABEL  = "cause"
 )
 
-// These values are tied to the metrics NAS message type
+// These values are tied to the metrics NAS message type.
+//
+// They are the public label vocabulary of the NAS metrics: renaming any of
+// them breaks existing dashboards and alerting rules, so they are pinned here
+// rather than derived from the message.MsgType names of github.com/free5gc/nas.
+// msgTypeToMetricName in message.go maps upstream message types onto them.
 const (
+	UNKNOWN_GMM_MESSAGE                                  = "Unknown gmm message"
 	AUTHENTICATION_REQUEST                               = "AuthenticationRequest"
 	AUTHENTICATION_RESPONSE                              = "AuthenticationResponse"
 	AUTHENTICATION_RESULT                                = "AuthenticationResult"
@@ -51,6 +57,19 @@ const (
 	SECURITY_MODE_REJECT                                 = "SecurityModeReject"
 	SECURITY_PROTECTED_5GS_NAS_MESSAGE                   = "SecurityProtected5GSNASMessage"
 	STATUS_5GMM                                          = "Status5GMM"
+
+	// 5GMM message types that the previous nas API did not expose and that
+	// therefore used to be counted as UNKNOWN_GMM_MESSAGE. Adding them is
+	// additive: no pre-existing label value changes meaning.
+	CONTROL_PLANE_SERVICE_REQUEST                  = "ControlPlaneServiceRequest"
+	NETWORK_SLICE_SPECIFIC_AUTHENTICATION_COMMAND  = "NetworkSliceSpecificAuthenticationCommand"
+	NETWORK_SLICE_SPECIFIC_AUTHENTICATION_COMPLETE = "NetworkSliceSpecificAuthenticationComplete"
+	NETWORK_SLICE_SPECIFIC_AUTHENTICATION_RESULT   = "NetworkSliceSpecificAuthenticationResult"
+	RELAY_KEY_REQUEST                              = "RelayKeyRequest"
+	RELAY_KEY_ACCEPT                               = "RelayKeyAccept"
+	RELAY_KEY_REJECT                               = "RelayKeyReject"
+	RELAY_AUTHENTICATION_REQUEST                   = "RelayAuthenticationRequest"
+	RELAY_AUTHENTICATION_RESPONSE                  = "RelayAuthenticationResponse"
 )
 
 // Additional error causes
