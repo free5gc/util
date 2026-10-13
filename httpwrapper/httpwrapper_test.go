@@ -4,9 +4,28 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewHttp2Server(t *testing.T) {
+	for _, timeout := range []time.Duration{0, time.Millisecond, 30 * time.Second} {
+		t.Run(timeout.String(), func(t *testing.T) {
+			server, err := NewHttp2Server("127.0.0.1:8000", "", http.NewServeMux(), timeout)
+			if !assert.NoError(t, err) {
+				return
+			}
+			assert.Equal(t, timeout, server.IdleTimeout)
+			assert.True(t, server.Protocols.HTTP1())
+			assert.True(t, server.Protocols.HTTP2())
+			assert.True(t, server.Protocols.UnencryptedHTTP2())
+		})
+	}
+	server, err := NewHttp2Server("127.0.0.1:8000", "", nil, time.Second)
+	assert.Error(t, err)
+	assert.Nil(t, server)
+}
 
 func TestNewRequest(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(),

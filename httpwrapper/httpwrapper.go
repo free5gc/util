@@ -48,7 +48,7 @@ func NewResponse(code int, h http.Header, body interface{}) *Response {
 // deprecated by RFC 9113 section 3.1 and is not accepted.
 // If this function cannot open or create the secret log file,
 // **it still returns server instance** but without the secret log and error indication
-func NewHttp2Server(bindAddr string, preMasterSecretLogPath string, handler http.Handler) (*http.Server, error) {
+func NewHttp2Server(bindAddr string, preMasterSecretLogPath string, handler http.Handler, idleTimeout time.Duration) (*http.Server, error) {
 	if handler == nil {
 		return nil, errors.New("server needs handler to handle request")
 	}
@@ -63,7 +63,7 @@ func NewHttp2Server(bindAddr string, preMasterSecretLogPath string, handler http
 		Handler:   handler,
 		Protocols: protocols,
 		// TODO: extends the idle time after re-use openapi client
-		IdleTimeout: 1 * time.Millisecond,
+		IdleTimeout: idleTimeout,
 	}
 
 	if preMasterSecretLogPath != "" {
