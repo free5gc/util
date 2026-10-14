@@ -24,7 +24,9 @@ type Server struct {
 }
 
 // Initializes a new HTTP server instance and associate the prometheus handler to it
-func NewServer(initMetrics InitMetrics, tlsKeyLogPath string, nfLogger *logrus.Entry, idleTimeout time.Duration) (*Server, error) {
+func NewServer(
+	initMetrics InitMetrics, tlsKeyLogPath string, nfLogger *logrus.Entry, idleTimeout time.Duration,
+) (*Server, error) {
 	if nfLogger == nil {
 		return nil, errors.New("nfLogger cannot be nil")
 	}
