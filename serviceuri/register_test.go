@@ -69,8 +69,8 @@ func TestAddressingRoundTrip(t *testing.T) {
 			},
 		}
 		got, err := ResolveNFServiceURI(profile, testServiceName, Options{})
-		if err != nil || got.APIRoot != want {
-			t.Fatalf("%s: got %q, error %v; want %q", addr, got.APIRoot, err, want)
+		if err != nil || got != want {
+			t.Fatalf("%s: got %q, error %v; want %q", addr, got, err, want)
 		}
 	}
 }

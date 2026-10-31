@@ -31,12 +31,12 @@ func ResolveNFServiceURI(
 	profile *models.Nrf_NFDisc_NFProfile,
 	name models.Nrf_NFMgmt_ServiceName,
 	opts Options,
-) (Result, error) {
+) (string, error) {
 	if profile == nil {
-		return Result{}, errors.New("NF profile is nil")
+		return "", errors.New("NF profile is nil")
 	}
-	_, result, err := resolve(matchingCandidates(profile, name), name, opts)
-	return result, err
+	_, uri, err := resolve(matchingCandidates(profile, name), name, opts)
+	return uri, err
 }
 
 // ResolveFromSearchResult selects an NF instance from an NRF discovery result
@@ -45,7 +45,7 @@ func ResolveFromSearchResult(
 	instances []models.Nrf_NFDisc_NFProfile,
 	name models.Nrf_NFMgmt_ServiceName,
 	opts Options,
-) (*models.Nrf_NFDisc_NFProfile, Result, error) {
+) (*models.Nrf_NFDisc_NFProfile, string, error) {
 	var cands []candidate
 	for i := range instances {
 		cands = append(cands, matchingCandidates(&instances[i], name)...)
@@ -57,19 +57,19 @@ func ResolveFromSearchResult(
 // that yields a valid API root.
 func resolve(
 	cands []candidate, name models.Nrf_NFMgmt_ServiceName, opts Options,
-) (*models.Nrf_NFDisc_NFProfile, Result, error) {
+) (*models.Nrf_NFDisc_NFProfile, string, error) {
 	if len(cands) == 0 {
-		return nil, Result{}, fmt.Errorf("%w: %q", ErrServiceNotFound, name)
+		return nil, "", fmt.Errorf("%w: %q", ErrServiceNotFound, name)
 	}
 	var lastErr error
 	for _, c := range orderCandidates(cands) {
-		result, err := Build(toProfile(c.profile), toService(c.service), opts)
+		uri, err := resolveService(toProfile(c.profile), toService(c.service), opts)
 		if err == nil {
-			return c.profile, result, nil
+			return c.profile, uri, nil
 		}
 		lastErr = fmt.Errorf("NFService %q of NF %s: %w", name, c.profile.NfInstanceId, err)
 	}
-	return nil, Result{}, lastErr
+	return nil, "", lastErr
 }
 
 // matchingCandidates returns the REGISTERED NFServices named name.
@@ -154,8 +154,8 @@ func orderByWeight(group []candidate) []candidate {
 	return ordered
 }
 
-func toProfile(p *models.Nrf_NFDisc_NFProfile) Profile {
-	return Profile{
+func toProfile(p *models.Nrf_NFDisc_NFProfile) profileInfo {
+	return profileInfo{
 		FQDN:          p.Fqdn,
 		InterPlmnFQDN: p.InterPlmnFqdn,
 		IPv4Addresses: p.Ipv4Addresses,
@@ -163,12 +163,12 @@ func toProfile(p *models.Nrf_NFDisc_NFProfile) Profile {
 	}
 }
 
-func toService(s models.Nrf_NFDisc_NFService) Service {
-	endpoints := make([]Endpoint, 0, len(s.IpEndPoints))
+func toService(s models.Nrf_NFDisc_NFService) serviceInfo {
+	endpoints := make([]endpoint, 0, len(s.IpEndPoints))
 	for _, ep := range s.IpEndPoints {
-		endpoints = append(endpoints, Endpoint{IPv4Address: ep.Ipv4Address, IPv6Address: ep.Ipv6Address, Port: ep.Port})
+		endpoints = append(endpoints, endpoint{IPv4Address: ep.Ipv4Address, IPv6Address: ep.Ipv6Address, Port: ep.Port})
 	}
-	return Service{
+	return serviceInfo{
 		Scheme:        string(s.Scheme),
 		FQDN:          s.Fqdn,
 		InterPlmnFQDN: s.InterPlmnFqdn,
