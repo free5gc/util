@@ -17,25 +17,25 @@ import (
 // ErrAddressUnavailable indicates that an NFService has no usable FQDN or IP address.
 var ErrAddressUnavailable = errors.New("NFService has no usable FQDN or IP address")
 
-type Endpoint struct {
+type endpoint struct {
 	IPv4Address string
 	IPv6Address string
 	Port        int32
 }
 
-type Profile struct {
+type profileInfo struct {
 	FQDN          string
 	InterPlmnFQDN string
 	IPv4Addresses []string
 	IPv6Addresses []string
 }
 
-type Service struct {
+type serviceInfo struct {
 	Scheme        string
 	FQDN          string
 	InterPlmnFQDN string
 	APIPrefix     string
-	Endpoints     []Endpoint
+	Endpoints     []endpoint
 }
 
 type Options struct {
@@ -48,48 +48,43 @@ type Options struct {
 	AllowLegacyAbsoluteAPIPrefix bool
 }
 
-type Result struct {
-	APIRoot                     string
-	UsedLegacyAbsoluteAPIPrefix bool
-}
-
-// Build returns the API root of one NFService.
+// resolveService returns the API root of one NFService.
 //
 // TS 29.510 6.1.6.2.3 NOTE 1 / NOTE 8: an FQDN is used with https (TLS), for
 // inter-PLMN signalling and for Indirect Communication; with http and Direct
 // Communication, ipEndPoints take precedence over the NFProfile addresses.
-func Build(profile Profile, service Service, opts Options) (Result, error) {
+func resolveService(profile profileInfo, service serviceInfo, opts Options) (string, error) {
 	scheme := strings.ToLower(service.Scheme)
 	if scheme != "http" && scheme != "https" {
-		return Result{}, fmt.Errorf("invalid NFService.scheme %q", service.Scheme)
+		return "", fmt.Errorf("invalid NFService.scheme %q", service.Scheme)
 	}
 	prefix := service.APIPrefix
 	if strings.HasPrefix(prefix, "http://") || strings.HasPrefix(prefix, "https://") {
 		return buildLegacy(scheme, prefix, opts)
 	}
 	if err := validator.ValidateApiPrefix(prefix); err != nil {
-		return Result{}, err
+		return "", err
 	}
 
 	if scheme == "https" || opts.InterPLMN || opts.IndirectSCP || service.FQDN != "" {
 		host := selectFQDN(profile, service, opts.InterPLMN)
 		if host == "" {
-			return Result{}, fmt.Errorf("FQDN is required for scheme %q and selected communication mode", scheme)
+			return "", fmt.Errorf("FQDN is required for scheme %q and selected communication mode", scheme)
 		}
 		port, err := portForFQDN(service.Endpoints)
 		if err != nil {
-			return Result{}, err
+			return "", err
 		}
 		return buildAPIRoot(scheme, host, port, prefix)
 	}
 
-	var endpoints []Endpoint
+	var endpoints []endpoint
 	for _, ep := range service.Endpoints {
 		if ep.IPv4Address == "" && ep.IPv6Address == "" {
 			continue
 		}
 		if err := validator.ValidateIpEndPoint(ep.IPv4Address, ep.IPv6Address, ep.Port); err != nil {
-			return Result{}, err
+			return "", err
 		}
 		endpoints = append(endpoints, ep)
 	}
@@ -101,38 +96,38 @@ func Build(profile Profile, service Service, opts Options) (Result, error) {
 
 	port, err := portForFQDN(service.Endpoints)
 	if err != nil {
-		return Result{}, err
+		return "", err
 	}
 	if profile.FQDN != "" {
 		return buildAPIRoot(scheme, profile.FQDN, port, prefix)
 	}
 	addresses, err := profileAddresses(profile)
 	if err != nil {
-		return Result{}, err
+		return "", err
 	}
 	if len(addresses) == 0 {
-		return Result{}, ErrAddressUnavailable
+		return "", ErrAddressUnavailable
 	}
 	return buildAPIRoot(scheme, addresses[rand.Intn(len(addresses))], port, prefix)
 }
 
-func buildLegacy(scheme, prefix string, opts Options) (Result, error) {
+func buildLegacy(scheme, prefix string, opts Options) (string, error) {
 	if !opts.AllowLegacyAbsoluteAPIPrefix {
-		return Result{}, fmt.Errorf("non-standard absolute NFService.apiPrefix %q", prefix)
+		return "", fmt.Errorf("non-standard absolute NFService.apiPrefix %q", prefix)
 	}
 	u, err := url.Parse(prefix)
 	if err != nil || u.Scheme != scheme || u.Hostname() == "" || u.User != nil ||
 		u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
-		return Result{}, fmt.Errorf("invalid legacy apiPrefix URL %q", prefix)
+		return "", fmt.Errorf("invalid legacy apiPrefix URL %q", prefix)
 	}
-	return Result{APIRoot: strings.TrimSuffix(u.String(), "/"), UsedLegacyAbsoluteAPIPrefix: true}, nil
+	return strings.TrimSuffix(u.String(), "/"), nil
 }
 
 // selectFQDN applies TS 29.510 6.1.6.2.3 NOTE 1: the NFService value has
 // precedence over the NFProfile value, and inter-PLMN signalling uses
 // interPlmnFqdn. Without interPlmnFqdn it falls back to fqdn, which is where
 // the NRF exposes interPlmnFqdn towards a different PLMN.
-func selectFQDN(profile Profile, service Service, interPLMN bool) string {
+func selectFQDN(profile profileInfo, service serviceInfo, interPLMN bool) string {
 	if interPLMN {
 		if service.InterPlmnFQDN != "" {
 			return service.InterPlmnFQDN
@@ -147,7 +142,7 @@ func selectFQDN(profile Profile, service Service, interPLMN bool) string {
 	return profile.FQDN
 }
 
-func profileAddresses(profile Profile) ([]string, error) {
+func profileAddresses(profile profileInfo) ([]string, error) {
 	addresses := make([]string, 0, len(profile.IPv4Addresses)+len(profile.IPv6Addresses))
 	for _, addr := range profile.IPv4Addresses {
 		if err := validator.ValidateIpEndPoint(addr, "", 0); err != nil {
@@ -165,7 +160,7 @@ func profileAddresses(profile Profile) ([]string, error) {
 }
 
 // portForFQDN returns the single port registered in ipEndPoints (0 if none).
-func portForFQDN(points []Endpoint) (int32, error) {
+func portForFQDN(points []endpoint) (int32, error) {
 	var result int32
 	for _, ep := range points {
 		if !validator.IsValidPort(ep.Port) {
@@ -184,10 +179,10 @@ func portForFQDN(points []Endpoint) (int32, error) {
 
 // buildAPIRoot formats {scheme}://{host}:{port}{apiPrefix}. Port 0 means the
 // default port of the scheme. host and port must already be validated.
-func buildAPIRoot(scheme, host string, port int32, prefix string) (Result, error) {
+func buildAPIRoot(scheme, host string, port int32, prefix string) (string, error) {
 	if host == "" || strings.ContainsAny(host, "/?#@%[]\\ \t\n\r") ||
 		(strings.Contains(host, ":") && net.ParseIP(host) == nil) {
-		return Result{}, fmt.Errorf("invalid target host %q", host)
+		return "", fmt.Errorf("invalid target host %q", host)
 	}
 	if port == 0 {
 		port = 80
@@ -195,6 +190,5 @@ func buildAPIRoot(scheme, host string, port int32, prefix string) (Result, error
 			port = 443
 		}
 	}
-	root := scheme + "://" + net.JoinHostPort(host, strconv.Itoa(int(port))) + strings.TrimSuffix(prefix, "/")
-	return Result{APIRoot: root}, nil
+	return scheme + "://" + net.JoinHostPort(host, strconv.Itoa(int(port))) + strings.TrimSuffix(prefix, "/"), nil
 }

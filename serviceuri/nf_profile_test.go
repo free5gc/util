@@ -58,8 +58,8 @@ func TestResolveNFServiceURISelection(t *testing.T) {
 				}
 				return
 			}
-			if err != nil || got.APIRoot != tt.want {
-				t.Fatalf("got %q, error %v; want %q", got.APIRoot, err, tt.want)
+			if err != nil || got != tt.want {
+				t.Fatalf("got %q, error %v; want %q", got, err, tt.want)
 			}
 		})
 	}
@@ -146,8 +146,8 @@ func TestResolveNFServiceURIStandardFields(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ResolveNFServiceURI(&tt.profile, testServiceName, Options{})
-			if err != nil || got.APIRoot != tt.want {
-				t.Fatalf("got %q, error %v; want %q", got.APIRoot, err, tt.want)
+			if err != nil || got != tt.want {
+				t.Fatalf("got %q, error %v; want %q", got, err, tt.want)
 			}
 		})
 	}
@@ -176,7 +176,7 @@ func TestResolveNFServiceURIInvalidInput(t *testing.T) {
 				registered(models.Nrf_NFDisc_NFService{Scheme: tt.scheme, Fqdn: tt.fqdn, ApiPrefix: tt.prefix}),
 			}}
 			if got, err := ResolveNFServiceURI(profile, testServiceName, Options{}); err == nil {
-				t.Fatalf("accepted invalid input: %q", got.APIRoot)
+				t.Fatalf("accepted invalid input: %q", got)
 			}
 		})
 	}
@@ -190,8 +190,8 @@ func TestResolveNFServiceURIHTTPSNeverUsesBareIP(t *testing.T) {
 		}),
 	}}
 	got, err := ResolveNFServiceURI(profile, testServiceName, Options{})
-	if err == nil || strings.Contains(got.APIRoot, "192.0.2.10") {
-		t.Fatalf("HTTPS must not fall back to a bare IP: got %q, error %v", got.APIRoot, err)
+	if err == nil || strings.Contains(got, "192.0.2.10") {
+		t.Fatalf("HTTPS must not fall back to a bare IP: got %q, error %v", got, err)
 	}
 }
 
@@ -209,8 +209,8 @@ func TestResolveNFServiceURILegacyAbsolutePrefix(t *testing.T) {
 	}
 
 	got, err := ResolveNFServiceURI(profile, testServiceName, Options{AllowLegacyAbsoluteAPIPrefix: true})
-	if err != nil || got.APIRoot != "http://amf.free5gc.org:8000" || !got.UsedLegacyAbsoluteAPIPrefix {
-		t.Fatalf("legacy mode returned %+v, error %v", got, err)
+	if err != nil || got != "http://amf.free5gc.org:8000" {
+		t.Fatalf("legacy mode returned %q, error %v", got, err)
 	}
 }
 
@@ -260,8 +260,8 @@ func TestResolveFromSearchResultPriority(t *testing.T) {
 		instance("high", 10, 0, ipv4Service("10.0.0.10", 8000)),
 	}
 	profile, got, err := ResolveFromSearchResult(instances, testServiceName, Options{})
-	if err != nil || profile.NfInstanceId != "high" || got.APIRoot != "http://10.0.0.10:8000" {
-		t.Fatalf("selected %v %q, error %v; want instance %q", profile, got.APIRoot, err, "high")
+	if err != nil || profile.NfInstanceId != "high" || got != "http://10.0.0.10:8000" {
+		t.Fatalf("selected %v %q, error %v; want instance %q", profile, got, err, "high")
 	}
 }
 
@@ -349,8 +349,8 @@ func TestResolveNFServiceURIPrefersNFServiceList(t *testing.T) {
 		},
 	}
 	got, err := ResolveNFServiceURI(profile, testServiceName, Options{})
-	if err != nil || got.APIRoot != "http://10.0.0.2:8000" {
-		t.Fatalf("got %q, error %v", got.APIRoot, err)
+	if err != nil || got != "http://10.0.0.2:8000" {
+		t.Fatalf("got %q, error %v", got, err)
 	}
 }
 
@@ -362,8 +362,8 @@ func TestResolveNFServiceURIPriorityFallback(t *testing.T) {
 	backup := withPriority(ipv4Service("10.0.0.2", 8000), 2, 0)
 	profile := &models.Nrf_NFDisc_NFProfile{NfServices: []models.Nrf_NFDisc_NFService{backup, broken}}
 	got, err := ResolveNFServiceURI(profile, testServiceName, Options{})
-	if err != nil || got.APIRoot != "http://10.0.0.2:8000" {
-		t.Fatalf("got %q, error %v", got.APIRoot, err)
+	if err != nil || got != "http://10.0.0.2:8000" {
+		t.Fatalf("got %q, error %v", got, err)
 	}
 }
 
@@ -379,8 +379,8 @@ func TestResolveNFServiceURIInterPLMN(t *testing.T) {
 		},
 	}
 	got, err := ResolveNFServiceURI(profile, testServiceName, Options{InterPLMN: true})
-	if err != nil || got.APIRoot != "https://udm.5gc.mnc001.mcc001.3gppnetwork.org:443" {
-		t.Fatalf("got %q, error %v", got.APIRoot, err)
+	if err != nil || got != "https://udm.5gc.mnc001.mcc001.3gppnetwork.org:443" {
+		t.Fatalf("got %q, error %v", got, err)
 	}
 }
 
@@ -409,8 +409,8 @@ func TestResolveFromSearchResult(t *testing.T) {
 		if profile != &instances[2] {
 			t.Fatal("returned profile must point into the given slice")
 		}
-		if got.APIRoot != "http://10.0.0.1:8000" {
-			t.Fatalf("APIRoot = %q", got.APIRoot)
+		if got != "http://10.0.0.1:8000" {
+			t.Fatalf("APIRoot = %q", got)
 		}
 	})
 
