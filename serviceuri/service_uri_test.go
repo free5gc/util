@@ -45,6 +45,26 @@ func TestResolveService(t *testing.T) {
 			want: "http://amf.example.org:8000/operator/edge",
 		},
 		{
+			// Issue free5gc#1173: an FQDN that does not resolve must not block
+			// Direct Communication over http when an IP address is advertised.
+			name: "HTTP_IP_precedence_over_service_FQDN",
+			service: serviceInfo{
+				Scheme:    "http",
+				FQDN:      "ausf.example.org",
+				Endpoints: []endpoint{{IPv4Address: "10.22.22.12", Port: 80}},
+			},
+			want: "http://10.22.22.12:80",
+		},
+		{
+			name: "HTTPS_FQDN_precedence_over_IP",
+			service: serviceInfo{
+				Scheme:    "https",
+				FQDN:      "ausf.example.org",
+				Endpoints: []endpoint{{IPv4Address: "10.22.22.12", Port: 443}},
+			},
+			want: "https://ausf.example.org:443",
+		},
+		{
 			name: "HTTP_IP_no_prefix",
 			service: serviceInfo{
 				Scheme:    "http",

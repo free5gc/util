@@ -51,8 +51,9 @@ type Options struct {
 // resolveService returns the API root of one NFService.
 //
 // TS 29.510 6.1.6.2.3 NOTE 1 / NOTE 8: an FQDN is used with https (TLS), for
-// inter-PLMN signalling and for Indirect Communication; with http and Direct
-// Communication, ipEndPoints take precedence over the NFProfile addresses.
+// inter-PLMN signalling and for Indirect Communication. With http and Direct
+// Communication, the IP addresses in ipEndPoints are used when present, so no
+// DNS resolution is needed; otherwise the FQDN, then the NFProfile addresses.
 func resolveService(profile profileInfo, service serviceInfo, opts Options) (string, error) {
 	scheme := strings.ToLower(service.Scheme)
 	if scheme != "http" && scheme != "https" {
@@ -66,7 +67,7 @@ func resolveService(profile profileInfo, service serviceInfo, opts Options) (str
 		return "", err
 	}
 
-	if scheme == "https" || opts.InterPLMN || opts.IndirectSCP || service.FQDN != "" {
+	if scheme == "https" || opts.InterPLMN || opts.IndirectSCP {
 		host := selectFQDN(profile, service, opts.InterPLMN)
 		if host == "" {
 			return "", fmt.Errorf("FQDN is required for scheme %q and selected communication mode", scheme)
@@ -98,8 +99,8 @@ func resolveService(profile profileInfo, service serviceInfo, opts Options) (str
 	if err != nil {
 		return "", err
 	}
-	if profile.FQDN != "" {
-		return buildAPIRoot(scheme, profile.FQDN, port, prefix)
+	if host := selectFQDN(profile, service, false); host != "" {
+		return buildAPIRoot(scheme, host, port, prefix)
 	}
 	addresses, err := profileAddresses(profile)
 	if err != nil {
